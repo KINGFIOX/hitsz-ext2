@@ -27,3 +27,7 @@
 // fs
 
 #define FSMAGIC 0x10203040
+
+#define BIT_PER_BLOCK (BSIZE * 8)  // Bitmap bits per block
+
+#define BIT_BLOCK(b) ((b) / BIT_PER_BLOCK + SuperBlock::bmapstart)  // b 在 bitmap 中的 block number

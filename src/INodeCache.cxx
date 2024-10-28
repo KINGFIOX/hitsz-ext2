@@ -66,6 +66,7 @@ INode *INodeCache::inode_alloc(uint32_t dev, uint16_t type) {
 }
 
 INode *INodeCache::inode_dup(INode *ip) {
+  if (ip == nullptr) assert(0 && "ip == nullptr");
   mtx.lock();
   ip->ref++;
   mtx.unlock();

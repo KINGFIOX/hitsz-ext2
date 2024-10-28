@@ -253,16 +253,17 @@ static const char *skipelem(const char *path, char *ret) {
 
 /// @brief Look up and return the inode for a path name.
 ///
+/// @param cwd
 /// @param nameiparent If parent != 0, return the inode for the parent and copy the final path element into name, which must have room for DIRSIZ bytes.
 /// @param name (mut)
 ///
 /// @warning Must be called inside a transaction since it calls inode_put().
-[[maybe_unused]] static INode *name_(const char *path, bool nameiparent, char *name) {
+static INode *inode_name_(const char *path, INode *cwd, bool nameiparent, char *name) {
   INode *ip;
   if (*path == '/') {
     ip = INodeCache::inode_get(ROOTDEV, ROOTINO);
   } else {
-    // TODO ip = idup(myproc()->cwd);
+    ip = INodeCache::inode_dup(cwd);
   }
 
   // skipelem("a/bb/c", name) = "bb/c", setting name = "a"
@@ -299,11 +300,11 @@ static const char *skipelem(const char *path, char *ret) {
 /// @brief Look up the current directory of path.
 INode *inode_name(const char *path) {
   char name[DIRSIZ];
-  return name_(path, 0, name);
+  return inode_name_(path, nullptr, 0, name);
 }
 
 /// @brief Look up the parent directory of path.
 ///
 /// @param name (mut)
 ///
-INode *inode_name_parent(const char *path, char *name) { return name_(path, 1, name); }
+INode *inode_name_parent(const char *path, char *name) { return inode_name_(path, nullptr, 1, name); }

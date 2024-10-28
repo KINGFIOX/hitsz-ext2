@@ -21,7 +21,10 @@ add_executable("${PROJECT_NAME}"
     "src/main.cxx"
     "src/BlockCache.cxx"
     "src/Log.cxx" 
-    "src/SuperBlock.cxx")
+    "src/SuperBlock.cxx"
+    "src/INode.cxx"
+    "src/fs.cxx"
+    "src/INodeCache.cxx")
 target_link_libraries("${PROJECT_NAME}" ${FUSE_LIBRARIES})
 
 message("FUSE_INCLUDE_DIR ${FUSE_INCLUDE_DIR}")

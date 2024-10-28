@@ -64,3 +64,41 @@ INode *INodeCache::inode_alloc(uint32_t dev, uint16_t type) {
   ::printf("ialloc: no inodes\n");
   return 0;
 }
+
+INode *INodeCache::inode_dup(INode *ip) {
+  mtx.lock();
+  ip->ref++;
+  mtx.unlock();
+  return ip;
+}
+
+void INodeCache::inode_put(INode *ip) {
+  mtx.lock();
+
+  if (ip->ref == 1 && ip->valid && ip->dinode.nlink == 0) {
+    // inode has no links and no other references: truncate and free.
+
+    // ip->ref == 1 means no other process can have ip locked,
+    // so this acquiresleep() won't block (or deadlock).
+    ip->mtx.lock();
+
+    mtx.unlock();
+
+    ip->trunc();
+    ip->dinode.type = 0;
+    ip->update();
+    ip->valid = 0;
+
+    ip->mtx.unlock();
+
+    mtx.lock();
+  }
+
+  ip->ref--;
+  mtx.unlock();
+}
+
+void INodeCache::inode_unlock_put(INode *ip) {
+  ip->unlock();
+  inode_put(ip);
+}

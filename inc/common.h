@@ -13,7 +13,7 @@
 // direct index
 
 #define NDIRECT 12
-#define NINDIRECT (BSIZE / sizeof(uint))
+#define NINDIRECT (BSIZE / sizeof(uint32_t))
 #define MAX_FILE (NDIRECT + NINDIRECT)
 
 // dir entry
@@ -21,6 +21,8 @@
 #define DIRSIZ 14
 
 // inode
+
+#include "SuperBlock.h"
 
 #define ROOTINO 1  // root i-number
 

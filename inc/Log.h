@@ -1,0 +1,1 @@
+//! [ boot block | super block | log(log_hdr + n logs) | inode blocks | free bit map | data blocks]

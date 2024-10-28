@@ -369,7 +369,7 @@ void balloc(int used) {
 void iappend(uint inum, const void *xp, int n) {
   char buf[BSIZE];
 
-  const char *p = xp;
+  const char *p = (const char *)xp;
 
   struct dinode din;
   rinode(inum, &din);

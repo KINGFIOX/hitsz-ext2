@@ -1,2 +1,5 @@
 .cache
 build
+.vscode
+mkfs/mkfs
+fs.img

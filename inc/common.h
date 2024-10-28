@@ -43,3 +43,7 @@
 // common
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
+
+// device
+
+#define ROOTDEV 1  // device number of file system root disk (根文件系统的设备号)

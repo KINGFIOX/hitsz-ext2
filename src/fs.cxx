@@ -8,8 +8,10 @@
 
 #include "Block.h"
 #include "BlockCache.h"
+#include "DirEntry.h"
 #include "DiskINode.h"
 #include "INode.h"
+#include "INodeCache.h"
 #include "Log.h"
 #include "SuperBlock.h"
 #include "common.h"
@@ -175,4 +177,118 @@ uint32_t INode::write(uint64_t src, off_t off, uint32_t n) {
   this->update();
 
   return tot;
+}
+
+INode *INode::dirlookup(const char *name, off_t *poff) {
+  if (this->dinode.type != T_DIR) assert(0 && "dirlookup not DIR");
+
+  for (off_t off = 0; off < this->dinode.size; off += sizeof(DirEntry)) {
+    DirEntry de;
+    if (this->read((uint64_t)&de, off, sizeof(de)) != sizeof(de)) assert(0 && "dirlockup read");
+    if (de.inum == 0) continue;
+    if (strcmp(name, de.name) == 0) {
+      // entry matches path element
+      if (poff) *poff = off;
+      uint32_t inum = de.inum;
+      return INodeCache::inode_get(this->dev, inum);
+    }
+  }
+
+  return 0;
+}
+
+int INode::dirlink(char *name, uint32_t inum) {
+  // Check that name is not present.
+  INode *ip = this->dirlookup(name, 0);
+  if (ip != 0) {
+    INodeCache::inode_put(ip);
+    return -1;
+  }
+
+  // Look for an empty dirent.
+  off_t off;
+  DirEntry de;
+  for (off = 0; off < this->dinode.size; off += sizeof(de)) {
+    if (this->read((uint64_t)&de, off, sizeof(de)) != sizeof(de)) assert(0 && "dirlink read");
+    if (de.inum == 0) break;
+  }
+
+  strncpy(de.name, name, DIRSIZ);
+  de.inum = inum;
+  if (this->write((uint64_t)&de, off, sizeof(de)) != sizeof(de)) return -1;
+
+  return 0;
+}
+
+/// Paths
+///
+/// @brief Copy the next path element from path into name.
+/// @return Return a pointer to the element following the copied one.
+/// The returned path has no leading slashes, so the caller can check *path=='\0' to see if the name is the last one. If no name to remove, return 0.
+///
+/// @param ret (mut)
+///
+/// Examples:
+///   skipelem("a/bb/c", name) = "bb/c", setting name = "a"
+///   skipelem("///a//bb", name) = "bb", setting name = "a"
+///   skipelem("a", name) = "", setting name = "a"
+///   skipelem("", name) = skipelem("////", name) = 0
+///
+///
+static const char *skipelem(const char *path, char *ret) {
+  while (*path == '/') path++;
+  if (*path == 0) return 0;
+  const char *s = path;
+  while (*path != '/' && *path != 0) path++;
+  int len = path - s;
+  if (len >= DIRSIZ)
+    memmove(ret, s, DIRSIZ);
+  else {
+    memmove(ret, s, len);
+    ret[len] = 0;
+  }
+  while (*path == '/') path++;
+  return path;
+}
+
+/// @brief Look up and return the inode for a path name.
+/// If parent != 0, return the inode for the parent and copy the final path element into name, which must have room for DIRSIZ bytes.
+/// @warning Must be called inside a transaction since it calls inode_put().
+[[maybe_unused]] static INode *namex(const char *path, int nameiparent, char *name) {
+  INode *ip;
+  if (*path == '/') {
+    ip = INodeCache::inode_get(ROOTDEV, ROOTINO);
+  } else {
+    // ip = idup(myproc()->cwd);
+  }
+
+  // skipelem("a/bb/c", name) = "bb/c", setting name = "a"
+  // skipelem("///a//bb", name) = "bb", setting name = "a"
+  // skipelem("a", name) = "", setting name = "a"
+  // skipelem("", name) = skipelem("////", name) = 0
+  while ((path = skipelem(path, name)) != 0) {
+    ip->lock();
+    if (ip->dinode.type != T_DIR) {
+      INodeCache::inode_unlock_put(ip);
+      return 0;
+    }
+    if (nameiparent && *path == '\0') {
+      // Stop one level early.
+      ip->unlock();
+      return ip;
+    }
+    INode *next = ip->dirlookup(name, nullptr);
+    if (next == 0) {
+      INodeCache::inode_unlock_put(ip);
+      return 0;
+    }
+    INodeCache::inode_unlock_put(ip);
+    ip = next;
+  }
+
+  if (nameiparent) {
+    INodeCache::inode_put(ip);
+    return 0;
+  }
+  return ip;
 }

@@ -46,4 +46,12 @@ struct INode {
   /// @return the number of bytes successfully written.
   /// @return If the return value is less than the requested n, there was an error of some kind.
   uint32_t write(uint64_t src, off_t off, uint32_t n);
+
+  /// @brief Look for a directory entry in a directory.
+  /// @param poff If found, set *poff to byte offset of entry.
+  INode *dirlookup(const char *name, off_t *poff);
+
+  /// @brief Write a new directory entry (name, inum) into the directory dp.
+  /// @return Returns 0 on success, -1 on failure (e.g. out of disk blocks).
+  int dirlink(char *name, uint32_t inum);
 };

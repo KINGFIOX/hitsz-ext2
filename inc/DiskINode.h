@@ -4,6 +4,8 @@
 
 #include "common.h"
 
+enum { T_DIR = 1, T_FILE = 2, T_DEVICE = 3 };
+
 struct DiskINode {
   uint16_t type;                // File type
   uint16_t major;               // Major device number (T_DEVICE only)

@@ -7,9 +7,9 @@
 #include <mutex>
 
 #include "Block.h"
-#include "SuperBlock.h"
 #include "common.h"
 
+/// @brief log header(disk && mem)
 struct LogHeader {
   uint32_t n;
   uint32_t block[LOG_SIZE];
@@ -24,7 +24,7 @@ class Log {
   static uint32_t dev;
   static LogHeader log_hdr;
 
-  static void init(uint32_t dev, const SuperBlock *sb);
+  static void init(uint32_t dev);
 
   static void begin_op(void);
 

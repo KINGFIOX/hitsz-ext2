@@ -17,7 +17,7 @@ class BlockCache {
   // head.next is most recent, head.prev is least.
   static Block head;
 
-  static void blockcache_init(void);
+  static void init(void);
 
   static Block *block_read(uint32_t dev, uint32_t blockno);
   static void block_release(Block *b);

@@ -11,6 +11,7 @@
 
 #include "Block.h"
 #include "BlockCache.h"
+#include "SuperBlock.h"
 #include "common.h"
 
 uint32_t Log::start;
@@ -88,11 +89,11 @@ void Log::write_log(void) {
   }
 }
 
-void Log::init(uint32_t dev, const SuperBlock *sb) {
+void Log::init(uint32_t dev) {
   assert(sizeof(LogHeader) < BSIZE && "LogHeader too big");
 
-  start = sb->logstart;
-  size = sb->nlog;
+  start = SuperBlock::logstart;
+  size = SuperBlock::nlog;
   Log::dev = dev;
 
   Log::recover_from_log();

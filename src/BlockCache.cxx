@@ -11,7 +11,7 @@ std::mutex BlockCache::mtx;
 Block BlockCache::blocks[NBUF];
 Block BlockCache::head;
 
-void BlockCache::blockcache_init(void) {
+void BlockCache::init(void) {
   Block *b;
 
   // Create linked list of buffers
@@ -67,6 +67,11 @@ Block *BlockCache::block_read(uint32_t dev, uint32_t blockno) {
   return b;
 }
 
+void BlockCache::block_write(Block *b) {
+  // if (!holdingsleep(&b->lock)) panic("bwrite");
+  // TODO virtio_disk_rw(b, 1);
+}
+
 void BlockCache::block_release(Block *b) {
   // assert( b.is_locked() );
 
@@ -97,9 +102,4 @@ void BlockCache::block_unpin(Block *b) {
   mtx.lock();
   b->refcnt--;
   mtx.unlock();
-}
-
-void BlockCache::block_write(Block *b) {
-  // if (!holdingsleep(&b->lock)) panic("bwrite");
-  // TODO virtio_disk_rw(b, 1);
 }

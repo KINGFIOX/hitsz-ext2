@@ -7,6 +7,10 @@
 #include "Block.h"
 #include "common.h"
 
+std::mutex BlockCache::mtx;
+Block BlockCache::blocks[NBUF];
+Block BlockCache::head;
+
 void BlockCache::blockcache_init(void) {
   Block *b;
 
@@ -22,7 +26,7 @@ void BlockCache::blockcache_init(void) {
 }
 
 /// Return a locked buffer with the contents of the indicated block.
-Block *BlockCache ::block_get(uint32_t dev, uint32_t blockno) {
+Block *BlockCache::block_get(uint32_t dev, uint32_t blockno) {
   Block *b;
 
   mtx.lock();

@@ -5,7 +5,10 @@
 #include "Block.h"
 #include "common.h"
 
-struct BlockCache {
+struct Block;
+
+class BlockCache {
+ public:
   static std::mutex mtx;
   static Block blocks[NBUF];
 

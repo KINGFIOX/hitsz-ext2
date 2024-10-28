@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <mutex>
 
+#include "BlockCache.h"
 #include "common.h"
 
 struct Block {
@@ -12,7 +13,10 @@ struct Block {
   uint32_t blockno;
   std::mutex mtx;
   uint32_t refcnt;
+  uint8_t data[BSIZE];
+
+ private:
+  friend class BlockCache;
   Block *prev;  // LRU cache list
   Block *next;
-  uint8_t data[BSIZE];
 };

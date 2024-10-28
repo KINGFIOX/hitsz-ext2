@@ -1,7 +1,6 @@
 #include "INode.h"
 
 #include <cassert>
-#include <cstdint>
 #include <cstring>
 
 #include "Block.h"

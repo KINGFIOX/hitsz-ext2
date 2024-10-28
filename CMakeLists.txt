@@ -18,13 +18,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 find_package(FUSE REQUIRED)
 include_directories(${FUSE_INCLUDE_DIR} ./inc)
 add_executable("${PROJECT_NAME}" 
-    "src/main.cxx"
     "src/BlockCache.cxx"
-    "src/Log.cxx" 
-    "src/SuperBlock.cxx"
-    "src/INode.cxx"
     "src/fs.cxx"
-    "src/INodeCache.cxx")
+    "src/INode.cxx"
+    "src/INodeCache.cxx"
+    "src/Log.cxx" 
+    "src/main.cxx"
+    "src/SuperBlock.cxx"
+    )
 target_link_libraries("${PROJECT_NAME}" ${FUSE_LIBRARIES})
 
 message("FUSE_INCLUDE_DIR ${FUSE_INCLUDE_DIR}")

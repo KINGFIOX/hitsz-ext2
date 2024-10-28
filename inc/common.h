@@ -42,7 +42,7 @@
 
 // common
 
-#define min(a, b) ((a) < (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 // device
 

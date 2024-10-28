@@ -146,7 +146,7 @@ uint32_t INode::read(uint64_t dst, off_t off, uint32_t n) {
     uint32_t bno_phy = block_map(this, off / BSIZE);
     if (bno_phy == 0) break;
     Block *bp = BlockCache::block_read(this->dev, bno_phy);
-    m = min(n - tot, BSIZE - off % BSIZE);
+    m = MIN(n - tot, BSIZE - off % BSIZE);
 
     ::memmove((char *)dst, bp->data + (off % BSIZE), m);
     BlockCache::block_release(bp);
@@ -156,14 +156,14 @@ uint32_t INode::read(uint64_t dst, off_t off, uint32_t n) {
 
 uint32_t INode::write(uint64_t src, off_t off, uint32_t n) {
   if (off > this->dinode.size || off + n < off) return -1;
-  if (off + n > MAX_FILE * BSIZE) return -1;
+  if (off + (off_t)n > (off_t)(MAX_FILE * BSIZE)) return -1;
 
   uint32_t tot, m;
   for (tot = 0; tot < n; tot += m, off += m, src += m) {
     uint32_t bno_phy = block_map(this, off / BSIZE);
     if (bno_phy == 0) break;
     Block *bp = BlockCache ::block_read(this->dev, bno_phy);
-    m = min(n - tot, BSIZE - off % BSIZE);
+    m = MIN(n - tot, BSIZE - off % BSIZE);
     ::memmove(bp->data + (off % BSIZE), (char *)src, m);
     Log::log_write(bp);
     BlockCache::block_release(bp);
@@ -252,14 +252,17 @@ static const char *skipelem(const char *path, char *ret) {
 }
 
 /// @brief Look up and return the inode for a path name.
-/// If parent != 0, return the inode for the parent and copy the final path element into name, which must have room for DIRSIZ bytes.
+///
+/// @param nameiparent If parent != 0, return the inode for the parent and copy the final path element into name, which must have room for DIRSIZ bytes.
+/// @param name (mut)
+///
 /// @warning Must be called inside a transaction since it calls inode_put().
-[[maybe_unused]] static INode *namex(const char *path, int nameiparent, char *name) {
+[[maybe_unused]] static INode *name_(const char *path, bool nameiparent, char *name) {
   INode *ip;
   if (*path == '/') {
     ip = INodeCache::inode_get(ROOTDEV, ROOTINO);
   } else {
-    // ip = idup(myproc()->cwd);
+    // TODO ip = idup(myproc()->cwd);
   }
 
   // skipelem("a/bb/c", name) = "bb/c", setting name = "a"
@@ -292,3 +295,15 @@ static const char *skipelem(const char *path, char *ret) {
   }
   return ip;
 }
+
+/// @brief Look up the current directory of path.
+INode *inode_name(const char *path) {
+  char name[DIRSIZ];
+  return name_(path, 0, name);
+}
+
+/// @brief Look up the parent directory of path.
+///
+/// @param name (mut)
+///
+INode *inode_name_parent(const char *path, char *name) { return name_(path, 1, name); }

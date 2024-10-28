@@ -25,7 +25,7 @@ void BlockCache::init(void) {
   }
 }
 
-/// Return a locked buffer with the contents of the indicated block.
+/// Return a locked block with the contents of the indicated block.
 Block *BlockCache::block_get(uint32_t dev, uint32_t blockno) {
   Block *b;
 

@@ -5,7 +5,7 @@
 
 #include "DiskINode.h"
 
-struct inode {
+struct INode {
   uint32_t dev;    // Device number
   uint32_t inum;   // Inode number
   uint32_t ref;    // Reference count

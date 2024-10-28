@@ -32,7 +32,7 @@ void SuperBlock::init(uint32_t dev) {
 
   BlockCache::block_release(bp);
 
-  assert(SuperBlock::magic == FSMAGIC && "invalid file system");
+  assert(SuperBlock::magic == FS_MAGIC && "invalid file system");
 
   Log::init(dev);
 }

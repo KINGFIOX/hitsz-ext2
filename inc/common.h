@@ -24,9 +24,15 @@
 
 #define ROOTINO 1  // root i-number
 
+#define NINODE 50  // maximum number of i-nodes in inode cache
+
+#define INODE_PER_BLOCK (BSIZE / sizeof(DiskINode))
+
+#define INODE_BLOCK(i) ((i) / INODE_PER_BLOCK + SuperBlock::inodestart)  // Block containing inode i
+
 // fs
 
-#define FSMAGIC 0x10203040
+#define FS_MAGIC 0x10203040
 
 #define BIT_PER_BLOCK (BSIZE * 8)  // Bitmap bits per block
 

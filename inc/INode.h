@@ -1,9 +1,12 @@
 #pragma once
 
+#include <sys/types.h>
+
 #include <cstdint>
 #include <mutex>
 
 #include "DiskINode.h"
+#include "Stat.h"
 
 struct INode {
   uint32_t dev;    // Device number
@@ -29,4 +32,18 @@ struct INode {
   /// @warning Must be called after every change to an ip->xxx field that lives on disk.
   /// @warning Caller must hold ip->lock.
   void update(void);
+
+  /// @brief Copy stat information from inode.
+  /// @warning Caller must hold ip->lock.
+  void stat(Stat *st);
+
+  /// @brief Read data from inode.
+  /// @warning Caller must hold ip->lock.
+  uint32_t read(uint64_t dst, off_t off, uint32_t n);
+
+  /// @brief Write data to inode.
+  /// @warning Caller must hold ip->lock.
+  /// @return the number of bytes successfully written.
+  /// @return If the return value is less than the requested n, there was an error of some kind.
+  uint32_t write(uint64_t src, off_t off, uint32_t n);
 };

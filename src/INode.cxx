@@ -1,6 +1,7 @@
 #include "INode.h"
 
 #include <cassert>
+#include <cstdint>
 #include <cstring>
 
 #include "Block.h"
@@ -32,4 +33,12 @@ void INode::lock(void) {
     this->valid = 1;
     assert(this->dinode.type != 0 && "ilock: no type");
   }
+}
+
+void INode::stat(Stat *st) {
+  st->dev = this->dev;
+  st->ino = this->inum;
+  st->type = this->dinode.type;
+  st->nlink = this->dinode.nlink;
+  st->size = this->dinode.size;
 }

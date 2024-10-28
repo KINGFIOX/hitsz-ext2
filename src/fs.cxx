@@ -1,3 +1,5 @@
+#include <sys/types.h>
+
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -131,4 +133,46 @@ static uint32_t block_map(INode *ip, uint32_t bno_logi) {
   }
 
   assert(0 && "bmap: out of range");
+}
+
+uint32_t INode::read(uint64_t dst, off_t off, uint32_t n) {
+  if (off > this->dinode.size || off + n < off) return 0;
+  if (off + n > this->dinode.size) n = this->dinode.size - off;  // return type should be same as this->dinode.size
+
+  uint32_t tot, m;
+  for (tot = 0; tot < n; tot += m, off += m, dst += m) {
+    uint32_t bno_phy = block_map(this, off / BSIZE);
+    if (bno_phy == 0) break;
+    Block *bp = BlockCache::block_read(this->dev, bno_phy);
+    m = min(n - tot, BSIZE - off % BSIZE);
+
+    ::memmove((char *)dst, bp->data + (off % BSIZE), m);
+    BlockCache::block_release(bp);
+  }
+  return tot;
+}
+
+uint32_t INode::write(uint64_t src, off_t off, uint32_t n) {
+  if (off > this->dinode.size || off + n < off) return -1;
+  if (off + n > MAX_FILE * BSIZE) return -1;
+
+  uint32_t tot, m;
+  for (tot = 0; tot < n; tot += m, off += m, src += m) {
+    uint32_t bno_phy = block_map(this, off / BSIZE);
+    if (bno_phy == 0) break;
+    Block *bp = BlockCache ::block_read(this->dev, bno_phy);
+    m = min(n - tot, BSIZE - off % BSIZE);
+    ::memmove(bp->data + (off % BSIZE), (char *)src, m);
+    Log::log_write(bp);
+    BlockCache::block_release(bp);
+  }
+
+  if (off > this->dinode.size) this->dinode.size = off;
+
+  // write the i-node back to disk even if the size didn't change
+  // because the loop above might have called bmap() and added a new
+  // block to ip->addrs[].
+  this->update();
+
+  return tot;
 }

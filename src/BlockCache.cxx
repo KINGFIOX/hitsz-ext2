@@ -98,3 +98,8 @@ void BlockCache::block_unpin(Block *b) {
   b->refcnt--;
   mtx.unlock();
 }
+
+void BlockCache::block_write(Block *b) {
+  // if (!holdingsleep(&b->lock)) panic("bwrite");
+  // TODO virtio_disk_rw(b, 1);
+}

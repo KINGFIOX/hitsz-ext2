@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <fcntl.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,16 +9,7 @@
 
 #define stat xv6_stat  // avoid clash with host struct stat
 
-typedef unsigned int uint;
-typedef unsigned short ushort;
-typedef unsigned char uchar;
-
-typedef unsigned char uint8;
-typedef unsigned short uint16;
-typedef unsigned int uint32;
-typedef unsigned long uint64;
-
-typedef uint64 pde_t;
+typedef uint64_t pde_t;
 
 // On-disk file system format.
 // Both the kernel and user programs use this header file.
@@ -30,30 +23,30 @@ typedef uint64 pde_t;
 // mkfs computes the super block and builds an initial file system. The
 // super block describes the disk layout:
 struct superblock {
-  uint magic;       // Must be FSMAGIC
-  uint size;        // Size of file system image (blocks)
-  uint nblocks;     // Number of data blocks
-  uint ninodes;     // Number of inodes.
-  uint nlog;        // Number of log blocks
-  uint logstart;    // Block number of first log block
-  uint inodestart;  // Block number of first inode block
-  uint bmapstart;   // Block number of first free map block
+  uint32_t magic;       // Must be FSMAGIC
+  uint32_t size;        // Size of file system image (blocks)
+  uint32_t nblocks;     // Number of data blocks
+  uint32_t ninodes;     // Number of inodes.
+  uint32_t nlog;        // Number of log blocks
+  uint32_t logstart;    // Block number of first log block
+  uint32_t inodestart;  // Block number of first inode block
+  uint32_t bmapstart;   // Block number of first free map block
 };
 
 #define FSMAGIC 0x10203040
 
 #define NDIRECT 12
-#define NINDIRECT (BSIZE / sizeof(uint))
+#define NINDIRECT (BSIZE / sizeof(uint32_t))
 #define MAXFILE (NDIRECT + NINDIRECT)
 
 // On-disk inode structure
 struct dinode {
-  short type;               // File type
-  short major;              // Major device number (T_DEVICE only)
-  short minor;              // Minor device number (T_DEVICE only)
-  short nlink;              // Number of links to inode in file system
-  uint size;                // Size of file (bytes)
-  uint addrs[NDIRECT + 1];  // Data block addresses
+  uint16_t type;                // File type
+  uint16_t major;               // Major device number (T_DEVICE only)
+  uint16_t minor;               // Minor device number (T_DEVICE only)
+  uint16_t nlink;               // Number of links to inode in file system
+  uint32_t size;                // Size of file (bytes)
+  uint32_t addrs[NDIRECT + 1];  // Data block addresses
 };
 
 // Inodes per block.
@@ -72,7 +65,7 @@ struct dinode {
 #define DIRSIZ 14
 
 struct dirent {
-  ushort inum;  // inode num
+  uint16_t inum;  // inode num
   char name[DIRSIZ];
 };
 
@@ -81,11 +74,11 @@ struct dirent {
 #define T_DEVICE 3  // Device
 
 struct stat {
-  int dev;      // File system's disk device
-  uint ino;     // Inode number
-  short type;   // Type of file
-  short nlink;  // Number of links to file
-  uint64 size;  // Size of file in bytes
+  uint32_t dev;    // File system's disk device
+  uint32_t ino;    // Inode number
+  uint16_t type;   // Type of file
+  uint16_t nlink;  // Number of links to file
+  uint64_t size;   // Size of file in bytes
 };
 
 #define NPROC 64                   // maximum number of processes
@@ -116,44 +109,45 @@ struct stat {
 // Disk layout:
 // [ boot block | sb block | log | inode blocks | free bit map | data blocks ]
 
-int nbitmap = FSSIZE / (BSIZE * 8) + 1;
-int ninodeblocks = NINODES / IPB + 1;
-int nlog = LOGSIZE;
-int nmeta;    // Number of meta blocks (boot, sb, nlog, inode, bitmap)
-int nblocks;  // Number of data blocks
+uint32_t nbitmap = FSSIZE / (BSIZE * 8) + 1;
+uint32_t ninodeblocks = NINODES / IPB + 1;
+uint32_t nlog = LOGSIZE;
+uint32_t nmeta;    // Number of meta blocks (boot, sb, nlog, inode, bitmap)
+uint32_t nblocks;  // Number of data blocks
 
-int fsfd;
 struct superblock sb;
 char zeroes[BSIZE];
-uint freeinode = 1;
-uint used_block;
+uint32_t freeinode = 1;
+uint32_t used_block;
 
-void balloc(int);
-void wsect(uint bno, const void *buf);
-void winode(uint, const struct dinode *);
-void rinode(uint inum, struct dinode *ip);
-void rsect(uint bno, void *buf);
-uint ialloc(ushort type);
-void iappend(uint inum, const void *p, int n);
+void balloc(uint32_t);
+void wsect(uint32_t bno, const void *buf);
+void winode(uint32_t, const struct dinode *);
+void rinode(uint32_t inum, struct dinode *ip);
+void rsect(uint32_t bno, void *buf);
+uint32_t ialloc(uint16_t type);
+void iappend(uint32_t inum, const void *p, uint32_t n);
 
 // convert to intel byte order
-ushort xshort(ushort x) {
-  ushort y;
-  uchar *a = (uchar *)&y;
+uint16_t xshort(uint16_t x) {
+  uint16_t y;
+  uint8_t *a = (uint8_t *)&y;
   a[0] = x;
   a[1] = x >> 8;
   return y;
 }
 
-uint xint(uint x) {
-  uint y;
-  uchar *a = (uchar *)&y;
+uint32_t xint(uint32_t x) {
+  uint32_t y;
+  uint8_t *a = (uint8_t *)&y;
   a[0] = x;
   a[1] = x >> 8;
   a[2] = x >> 16;
   a[3] = x >> 24;
   return y;
 }
+
+int fsfd;  // int, because of the return type of open
 
 int main(int argc, char *argv[]) {
   char buf[BSIZE];
@@ -192,13 +186,13 @@ int main(int argc, char *argv[]) {
 
   used_block = nmeta;  // the first free block that we can allocate
 
-  for (int i = 0; i < FSSIZE; i++) wsect(i, zeroes);  // clear all blocks
+  for (size_t i = 0; i < FSSIZE; i++) wsect(i, zeroes);  // clear all blocks
 
   memset(buf, 0, sizeof(buf));  // write superblock to fs.img
   memmove(buf, &sb, sizeof(sb));
   wsect(1, buf);
 
-  uint rootino = ialloc(T_DIR);  // write inode and return the ino
+  uint32_t rootino = ialloc(T_DIR);  // write inode and return the ino
   assert(rootino == ROOTINO);
 
   struct dirent de;
@@ -217,7 +211,7 @@ int main(int argc, char *argv[]) {
   din.nlink++;
   winode(rootino, &din);
 
-  for (int i = 2; i < argc; i++) {
+  for (size_t i = 2; i < argc; i++) {
     // get rid of "user/"
     char *shortname;
     if (strncmp(argv[i], "user/", 5) == 0)
@@ -239,7 +233,7 @@ int main(int argc, char *argv[]) {
     // in place of system binaries like rm and cat.
     if (shortname[0] == '_') shortname += 1;  // get rid of the prefix _
 
-    uint inum = ialloc(T_FILE);
+    uint32_t inum = ialloc(T_FILE);
 
     bzero(&de, sizeof(de));
     de.inum = xshort(inum);
@@ -255,7 +249,7 @@ int main(int argc, char *argv[]) {
   // fix size of root inode dir
   // struct dinode din;
   rinode(rootino, &din);
-  uint off = xint(din.size);
+  uint32_t off = xint(din.size);
   off = ((off / BSIZE) + 1) * BSIZE;
   din.size = xint(off);
   winode(rootino, &din);
@@ -265,7 +259,7 @@ int main(int argc, char *argv[]) {
   exit(0);
 }
 
-void wsect(uint bno, const void *buf) {
+void wsect(uint32_t bno, const void *buf) {
   // 提笔到: bno * BSIZE 的位置
   if (lseek(fsfd, bno * BSIZE, 0) != bno * BSIZE) {
     perror("lseek");
@@ -283,11 +277,11 @@ void wsect(uint bno, const void *buf) {
  * @param inum
  * @param ip
  */
-void winode(uint inum, const struct dinode *ip) {
+void winode(uint32_t inum, const struct dinode *ip) {
   char buf[BSIZE];
 
-  uint bn = IBLOCK(inum, sb);  // get the block number which contains the inode
-  rsect(bn, buf);              // read the block
+  uint32_t bn = IBLOCK(inum, sb);  // get the block number which contains the inode
+  rsect(bn, buf);                  // read the block
   struct dinode *dip = ((struct dinode *)buf) + (inum % IPB);
   *dip = *ip;
   wsect(bn, buf);
@@ -299,10 +293,10 @@ void winode(uint inum, const struct dinode *ip) {
  * @param inum
  * @param ip (return)
  */
-void rinode(uint inum, struct dinode *ip) {
+void rinode(uint32_t inum, struct dinode *ip) {
   char buf[BSIZE];
 
-  uint bn = IBLOCK(inum, sb);
+  uint32_t bn = IBLOCK(inum, sb);
   rsect(bn, buf);
   struct dinode *dip = ((struct dinode *)buf) + (inum % IPB);
   *ip = *dip;
@@ -314,7 +308,7 @@ void rinode(uint inum, struct dinode *ip) {
  * @param bno
  * @param buf (mut)
  */
-void rsect(uint bno, void *buf) {
+void rsect(uint32_t bno, void *buf) {
   // 提笔到: bno * BSIZE 的位置
   if (lseek(fsfd, bno * BSIZE, 0) != bno * BSIZE) {
     perror("lseek");
@@ -330,10 +324,10 @@ void rsect(uint bno, void *buf) {
  * @brief
  *
  * @param type
- * @return uint
+ * @return
  */
-uint ialloc(ushort type) {
-  uint inum = freeinode++;  // freeinode init with 1
+uint32_t ialloc(uint16_t type) {
+  uint32_t inum = freeinode++;  // freeinode init with 1
   struct dinode din;
 
   bzero(&din, sizeof(din));  // clear the din
@@ -344,13 +338,13 @@ uint ialloc(ushort type) {
   return inum;
 }
 
-void balloc(int used) {
-  uchar buf[BSIZE];
+void balloc(uint32_t used) {
+  uint8_t buf[BSIZE];
 
   printf("balloc: first %d blocks have been allocated\n", used);
   assert(used < BSIZE * 8);
   bzero(buf, BSIZE);
-  for (int i = 0; i < used; i++) {
+  for (size_t i = 0; i < used; i++) {
     buf[i / 8] = buf[i / 8] | (0x1 << (i % 8));
   }
   printf("balloc: write bitmap block at sector %d\n", sb.bmapstart);
@@ -366,19 +360,19 @@ void balloc(int used) {
  * @param xp
  * @param n
  */
-void iappend(uint inum, const void *xp, int n) {
+void iappend(uint32_t inum, const void *xp, uint32_t n) {
   char buf[BSIZE];
 
   const char *p = (const char *)xp;
 
   struct dinode din;
   rinode(inum, &din);
-  uint off = xint(din.size);
+  uint32_t off = xint(din.size);
   // printf("append inum %d at off %d sz %d\n", inum, off, n);
   while (n > 0) {
-    uint fbn = off / BSIZE;
+    uint32_t fbn = off / BSIZE;
     assert(fbn < MAXFILE);
-    uint x;
+    uint32_t x;
     if (fbn < NDIRECT) {
       if (xint(din.addrs[fbn]) == 0) {
         din.addrs[fbn] = xint(used_block++);
@@ -388,7 +382,7 @@ void iappend(uint inum, const void *xp, int n) {
       if (xint(din.addrs[NDIRECT]) == 0) {
         din.addrs[NDIRECT] = xint(used_block++);
       }
-      uint indirect[NINDIRECT];
+      uint32_t indirect[NINDIRECT];
       rsect(xint(din.addrs[NDIRECT]), (char *)indirect);
       if (indirect[fbn - NDIRECT] == 0) {
         indirect[fbn - NDIRECT] = xint(used_block++);
@@ -396,7 +390,7 @@ void iappend(uint inum, const void *xp, int n) {
       }
       x = xint(indirect[fbn - NDIRECT]);
     }
-    uint n1 = min(n, (fbn + 1) * BSIZE - off);
+    uint32_t n1 = min(n, (fbn + 1) * BSIZE - off);
     rsect(x, buf);
 
     bcopy(p /*src*/, buf + off - (fbn * BSIZE) /*dst*/, n1);

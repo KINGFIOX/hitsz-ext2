@@ -17,7 +17,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 find_package(FUSE REQUIRED)
 include_directories(${FUSE_INCLUDE_DIR} ./inc)
-add_executable("${PROJECT_NAME}" "src/main.cxx" "src/BlockCache.cxx")
+add_executable("${PROJECT_NAME}" "src/main.cxx" "src/BlockCache.cxx" "src/Log.cxx")
 target_link_libraries("${PROJECT_NAME}" ${FUSE_LIBRARIES})
 
 message("FUSE_INCLUDE_DIR ${FUSE_INCLUDE_DIR}")

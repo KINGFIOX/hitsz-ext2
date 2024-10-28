@@ -18,8 +18,11 @@ class BlockCache {
   static Block head;
 
   static void blockcache_init(void);
+
   static Block *block_read(uint32_t dev, uint32_t blockno);
   static void block_release(Block *b);
+  static void block_write(Block *b);
+
   static void block_pin(Block *b);
   static void block_unpin(Block *b);
 

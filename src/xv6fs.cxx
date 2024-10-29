@@ -1,17 +1,18 @@
 #include "xv6fs.h"
 
+#include "PosixEnv.h"
 #include "config.h"
 
 extern "C" {
 #include <fuse.h>
 }
 
-void *xv6fs_init(struct fuse_conn_info *conn) {
+void *xv6fs_init(struct fuse_conn_info *_) {
   //   errcode_t rc;
-  //   struct fuse_context *cntx = fuse_get_context();
-  //   struct extfs_data *e2data = cntx->private_data;
+  struct fuse_context *cntx = fuse_get_context();
+  XV6FSData *user_data = (XV6FSData *)cntx->private_data;
 
-  //   debugf("enter %s", e2data->device);
+  PosixEnv::_mmap_base = user_data->_mmap_base;
 
   //   rc = ext2fs_open(e2data->device, (e2data->readonly) ? 0 : EXT2_FLAG_RW, 0, 0, unix_io_manager, &e2data->e2fs);
   //   if (rc) {
@@ -32,5 +33,5 @@ void *xv6fs_init(struct fuse_conn_info *conn) {
   //   debugf("leave");
 
   // return e2data;
-  return nullptr;
+  return user_data;
 }

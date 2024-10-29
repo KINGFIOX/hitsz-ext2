@@ -45,7 +45,7 @@ static const struct fuse_operations xv6fs_ops = {
     //     .readdir = op_readdir,
     //     .releasedir = op_release,
     //     .fsyncdir = op_fsync,
-    //     .init = op_init,
+    .init = xv6fs_init,
     //     .destroy = op_destroy,
     //     .access = op_access,
     //     .create = op_create,
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
   struct stat sb;
 
-  if (fstat(fd, &sb) == -1) {
+  if (::fstat(fd, &sb) == -1) {
     std::cerr << "fstat failed" << std::endl;
     std::abort();
   }
@@ -87,10 +87,10 @@ int main(int argc, char* argv[]) {
     std::abort();
   }
 
-  char* mnt = realpath(argv[3], nullptr);
+  char* mnt = ::realpath(argv[3], nullptr);
   logger->log("mount point: ", mnt);
 
-  struct xv6fs_data user_data = {.fd = fd, ._mmap_base = _mmap_base, .logger = logger};
+  struct XV6FSData user_data = {.fd = fd, ._mmap_base = _mmap_base, .logger = logger};
 
   argv[1] = "-f";
   argv[2] = "-d";

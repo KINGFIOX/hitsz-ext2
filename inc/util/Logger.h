@@ -9,7 +9,8 @@
 class Logger {
  public:
   // 构造函数，打开日志文件
-  Logger(const std::string& filename) : logFile(filename, std::ios::app) {
+  static void init(const std::string& filename) {
+    logFile.open(filename, std::ios::app);
     if (!logFile.is_open()) {
       throw std::runtime_error("无法打开日志文件: " + filename);
     }
@@ -20,7 +21,7 @@ class Logger {
   Logger& operator=(const Logger&) = delete;
 
   // 关闭文件的析构函数
-  ~Logger() {
+  static void destroy() {
     if (logFile.is_open()) {
       logFile.close();
     }
@@ -28,7 +29,7 @@ class Logger {
 
   // 日志函数，使用变长模板参数
   template <typename... Args>
-  void log(Args&&... args) {
+  static void log(Args&&... args) {
     std::lock_guard<std::mutex> guard(mtx);  // 确保线程安全
     logFile << getCurrentTime() << " ";
     writeToStream(logFile, std::forward<Args>(args)...);
@@ -36,11 +37,11 @@ class Logger {
   }
 
  private:
-  std::ofstream logFile;
-  std::mutex mtx;
+  static inline std::ofstream logFile;
+  static inline std::mutex mtx;
 
   // 获取当前时间的字符串表示
-  std::string getCurrentTime() {
+  static std::string getCurrentTime() {
     auto now = std::chrono::system_clock::now();
     auto itt = std::chrono::system_clock::to_time_t(now);
     std::tm tm;
@@ -51,11 +52,11 @@ class Logger {
   }
 
   // 递归终止函数
-  void writeToStream(std::ostream& os) {}
+  static void writeToStream(std::ostream& os) {}
 
   // 递归展开函数
   template <typename T, typename... Args>
-  void writeToStream(std::ostream& os, T&& first, Args&&... rest) {
+  static void writeToStream(std::ostream& os, T&& first, Args&&... rest) {
     os << std::forward<T>(first);
     writeToStream(os, std::forward<Args>(rest)...);
   }

@@ -45,8 +45,8 @@ static const struct fuse_operations xv6fs_ops = {
     //     .readdir = op_readdir,
     //     .releasedir = op_release,
     //     .fsyncdir = op_fsync,
-    .init = xv6fs_init,
-    //     .destroy = op_destroy,
+    .init = op_init,
+    .destroy = op_destroy,
     //     .access = op_access,
     //     .create = op_create,
     //     .ftruncate = op_ftruncate,
@@ -63,13 +63,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  char* log = argv[1];
   char* img = argv[2];
 
   int fd = ::open(img, O_RDWR | O_CREAT, 0666);
 
   struct stat sb;
-
   if (::fstat(fd, &sb) == -1) {
     std::cerr << "fstat failed" << std::endl;
     std::abort();
@@ -77,20 +75,18 @@ int main(int argc, char* argv[]) {
 
   char* _mmap_base = (char*)::mmap(nullptr, sb.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
-  Logger* logger = nullptr;
-
   try {
-    logger = new Logger(log);
-    logger->log("xv6fs log begin");
+    Logger::init(argv[1]);
+    Logger::log("xv6fs version: ", VERSION);
   } catch (const std::runtime_error& e) {
     std::cerr << e.what() << std::endl;
     std::abort();
   }
 
   char* mnt = ::realpath(argv[3], nullptr);
-  logger->log("mount point: ", mnt);
+  Logger::log("mount point: ", mnt);
 
-  struct XV6FSData user_data = {.fd = fd, ._mmap_base = _mmap_base, .logger = logger};
+  XV6FSData user_data = {.fd = fd, ._mmap_base = _mmap_base};
 
   argv[1] = "-f";
   argv[2] = "-d";
@@ -98,11 +94,13 @@ int main(int argc, char* argv[]) {
 
   ::fuse_main(argc, argv, &xv6fs_ops, &user_data);
 
-  delete logger;
   ::munmap(_mmap_base, sb.st_size);
   ::close(fd);
+
   ::free(mnt);
   mnt = nullptr;
+
+  Logger::destroy();
 
   return 0;
 }

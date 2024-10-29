@@ -2,3 +2,14 @@
 2024-10-29 11:50:26 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
 2024-10-29 11:54:59 xv6fs log begin
 2024-10-29 11:54:59 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
+2024-10-29 12:08:34 xv6fs log begin
+2024-10-29 12:08:34 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
+2024-10-29 12:08:34 op_initfuse init
+2024-10-29 12:17:10 xv6fs version: 0.0.11
+2024-10-29 12:17:10 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
+2024-10-29 12:17:10 op_initfuse init
+2024-10-29 12:17:16 op_destroyfuse destroy
+2024-10-29 12:23:28 xv6fs version: 0.0.11
+2024-10-29 12:23:28 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
+2024-10-29 12:23:28 op_initfuse init
+2024-10-29 12:23:38 op_destroyfuse destroy

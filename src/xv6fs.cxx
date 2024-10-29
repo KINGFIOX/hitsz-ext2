@@ -73,23 +73,38 @@ void op_destroy(void *userdata) { Logger::log(__func__, "fuse destroy"); }
 int op_getattr(const char *path, struct stat *stbuf) {
   Logger::log("enter ", "path = ", path);
 
-  INode *in = inode_name(path);
-  if (::strcmp(path, "/") == 0) {
-    std::cout << "bno: " << in->dinode.addrs[0] << std::endl;
-    char buf[1024];
-    in->read((uint64_t)buf, 0, 5 * sizeof(DirEntry));
-    std::cout << "bno: " << in->dinode.addrs[0] << std::endl;
-    for (int i = 0; i < 5; i++) {
-      DirEntry *dir = (DirEntry *)buf;
-      std::cout << "name: " << dir->name << "; " << "inum: " << dir->inum << std::endl;
-    }
-  }
-  if (in == nullptr) {
+  Log::begin_op();
+
+  INode *ip = inode_name(path);
+
+  if (ip == nullptr) {
     Logger::log("do_readinode(", path, ", &ino, &vnode); failed");
     return -ENOENT;
   }
 
-  do_fillstatbuf(in, stbuf);
+  ip->lock();
+
+  if (ip->dinode.type == T_DEVICE && (ip->dinode.major < 0 || ip->dinode.major >= NDEV)) {
+    INodeCache::inode_unlock_put(ip);
+    Log::end_op();
+    return -EIO;
+  }
+
+  do_fillstatbuf(ip, stbuf);
+
+  INodeCache::inode_unlock_put(ip);
+  Log::end_op();
+
+  // if (::strcmp(path, "/") == 0) {
+  //   std::cout << "bno: " << ip->dinode.addrs[0] << std::endl;
+  //   char buf[1024];
+  //   ip->read((uint64_t)buf, 0, 5 * sizeof(DirEntry));
+  //   std::cout << "bno: " << ip->dinode.addrs[0] << std::endl;
+  //   for (int i = 0; i < 5; i++) {
+  //     DirEntry *dir = (DirEntry *)buf;
+  //     std::cout << "name: " << dir->name << "; " << "inum: " << dir->inum << std::endl;
+  //   }
+  // }
 
   Logger::log("path: %s, size: %d", path, stbuf->st_size);
   Logger::log("leave");

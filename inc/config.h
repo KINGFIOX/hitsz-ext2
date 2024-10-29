@@ -4,4 +4,4 @@
 
 #define VERSION "0.0.11"
 
-#define FUSE_USE_VERSION 27
+#define FUSE_USE_VERSION 31

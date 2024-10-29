@@ -16,7 +16,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 find_package(FUSE REQUIRED)
-include_directories(${FUSE_INCLUDE_DIR} ./inc)
+include_directories(${FUSE_INCLUDE_DIR} ./inc ./inc/util)
 add_executable("${PROJECT_NAME}" 
     "src/BlockCache.cxx"
     "src/fs.cxx"
@@ -25,6 +25,7 @@ add_executable("${PROJECT_NAME}"
     "src/Log.cxx" 
     "src/main.cxx"
     "src/SuperBlock.cxx"
+    "src/xv6fs.cxx"
     )
 target_link_libraries("${PROJECT_NAME}" ${FUSE_LIBRARIES})
 

@@ -12,6 +12,7 @@
 #include "INodeCache.h"
 #include "Log.h"
 #include "Logger.h"
+#include "OFile.h"
 #include "PosixEnv.h"
 #include "SuperBlock.h"
 #include "common.h"
@@ -24,29 +25,36 @@ extern "C" {
 
 /// @param in (const)
 /// @param st (mut)
-static void do_fillstatbuf(const INode *in, struct stat *st) {
+static void do_fillstatbuf(const INode *ino, struct stat *st) {
   memset(st, 0, sizeof(*st));
-  st->st_dev = in->dev;
-  st->st_ino = in->inum;
-  if (in->dinode.type == DiskINode::T_DIR) {
+  st->st_dev = ino->dev;
+  st->st_ino = ino->inum;
+  if (ino->dinode.type == DiskINode::T_DIR) {
     st->st_mode = S_IFREG | 0755;
-  } else if (in->dinode.type == DiskINode::T_FILE) {
+  } else if (ino->dinode.type == DiskINode::T_FILE) {
     st->st_mode = S_IFDIR | 0644;
   } else {
     Logger::log("unknown type ", __FILE__, __LINE__, __FUNCTION__);
     Logger::log("unknown type ", __FILE__, __LINE__, __FUNCTION__);
   }
-  st->st_nlink = in->dinode.nlink;
+  st->st_nlink = ino->dinode.nlink;
   st->st_uid = ::getuid();
   st->st_gid = ::getgid();
   st->st_rdev = 0;  // 不会是 char, block
 
-  st->st_size = in->dinode.size;
+  st->st_size = ino->dinode.size;
   st->st_blksize = BSIZE;
-  st->st_blocks = (in->dinode.size + BSIZE - 1) / BSIZE;
+  st->st_blocks = (ino->dinode.size + BSIZE - 1) / BSIZE;
   st->st_atime = 0;
   st->st_mtime = 0;
   st->st_ctime = 0;
+}
+
+int op_fgetattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
+  OFile *file = (OFile *)fi->fh;
+  INode *ip = file->ip;
+  do_fillstatbuf(ip, stbuf);
+  return 0;
 }
 
 int op_getattr(const char *path, struct stat *stbuf) {

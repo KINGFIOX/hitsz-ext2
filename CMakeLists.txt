@@ -30,7 +30,7 @@ include_directories(${FUSE_INCLUDE_DIR} ./inc ./inc/util)
 add_executable("${PROJECT_NAME}" 
     "src/BlockCache.cxx"
     "src/Device.cxx"
-    "src/FIle.cxx"
+    "src/File.cxx"
     "src/FileTable.cxx"
     "src/fs.cxx"
     "src/INode.cxx"

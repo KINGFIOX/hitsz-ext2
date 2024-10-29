@@ -29,6 +29,7 @@ find_package(FUSE REQUIRED)
 include_directories(${FUSE_INCLUDE_DIR} ./inc ./inc/util)
 add_executable("${PROJECT_NAME}" 
     "src/BlockCache.cxx"
+    "src/Device.cxx"
     "src/FIle.cxx"
     "src/FileTable.cxx"
     "src/fs.cxx"
@@ -36,6 +37,7 @@ add_executable("${PROJECT_NAME}"
     "src/INodeCache.cxx"
     "src/Log.cxx" 
     "src/main.cxx"
+    "src/Pipe.cxx"
     "src/SuperBlock.cxx"
     "src/xv6fs.cxx"
     )

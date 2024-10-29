@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstring>
 
+#include "Device.h"
 #include "Log.h"
 #include "OFile.h"
 #include "common.h"
@@ -25,11 +26,10 @@ int OFile::read(char* addr, uint32_t n) {
   if (this->readable == 0) return -1;
 
   if (this->type == FD_PIPE) {
-    // TODO r = piperead(this->pipe, addr, n);
+    r = this->pipe->read(addr, n);
   } else if (this->type == OFile::FD_DEVICE) {
-    // TODO
-    // if (this->major < 0 || this->major >= NDEV || !devsw[f->major].read) return -1;
-    // r = devsw[f->major].read(1, addr, n);
+    if (this->major < 0 || this->major >= NDEV || !dev_table[this->major].read) return -1;
+    r = dev_table[this->major].read(1, (uint64_t)addr, n);
   } else if (this->type == OFile::FD_INODE) {
     this->ip->lock();
     r = this->ip->read((uint64_t)addr, this->off, n);
@@ -49,10 +49,11 @@ int OFile::write(const char* addr, uint32_t n) {
 
   if (this->readable == 0) return -1;
   if (this->type == OFile::FD_PIPE) {
-    // TODO
+    ret = this->pipe->write(addr, n);
   } else if (this->type == OFile::FD_DEVICE) {
     if (this->major < 0 || this->major >= NDEV /* || xxx */) return -1;
-    // TODO
+    if (this->major < 0 || this->major >= NDEV || !dev_table[this->major].write) return -1;
+    ret = dev_table[this->major].write(1, (uint64_t)addr, n);
   } else if (this->type == OFile::FD_INODE) {
     // write a few blocks at a time to avoid exceeding the maximum log transaction size,
     // including i-node, indirect block, allocation blocks, and 2 blocks of slop for non-aligned writes.

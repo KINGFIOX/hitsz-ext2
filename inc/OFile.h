@@ -8,16 +8,14 @@
 #include "Pipe.h"
 #include "Stat.h"
 
+struct Pipe;
+
 struct OFile {
   enum { FD_NONE, FD_PIPE, FD_INODE, FD_DEVICE } type;
-  union {
-    Pipe *pipe;  // FD_PIPE
-    INode *ip;   // FD_INODE and FD_DEVICE
-  };
-  union {
-    off_t off;       // FD_INODE
-    uint16_t major;  // FD_DEVICE
-  };
+  Pipe *pipe;      // FD_PIPE
+  INode *ip;       // FD_INODE and FD_DEVICE
+  off_t off;       // FD_INODE
+  uint16_t major;  // FD_DEVICE
   bool readable;
   bool writable;
 

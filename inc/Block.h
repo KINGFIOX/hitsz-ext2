@@ -8,7 +8,7 @@
 
 struct Block {
   bool valid;  // has data been read from disk?
-  bool disk;   // does disk "own" buf?
+  // bool disk;   // does disk "own" buf?
   uint32_t dev;
   uint32_t blockno;
   std::mutex mtx;

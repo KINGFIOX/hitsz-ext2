@@ -5,6 +5,7 @@
 #include <mutex>
 
 #include "Block.h"
+#include "PosixEnv.h"
 #include "common.h"
 
 std::mutex BlockCache::mtx;
@@ -61,7 +62,7 @@ Block *BlockCache::block_get(uint32_t dev, uint32_t blockno) {
 Block *BlockCache::block_read(uint32_t dev, uint32_t blockno) {
   Block *b = block_get(dev, blockno);
   if (!b->valid) {
-    // TODO virtio_disk_rw(b, 0);
+    PosixEnv::read(b);
     b->valid = 1;
   }
   return b;
@@ -69,7 +70,7 @@ Block *BlockCache::block_read(uint32_t dev, uint32_t blockno) {
 
 void BlockCache::block_write(Block *b) {
   // if (!holdingsleep(&b->lock)) panic("bwrite");
-  // TODO virtio_disk_rw(b, 1);
+  PosixEnv::write(b);
 }
 
 void BlockCache::block_release(Block *b) {

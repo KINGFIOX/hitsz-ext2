@@ -50,6 +50,10 @@
 
 #define NDEV 10  // maximum major device number
 
+// console
+
+#define CONSOLE 1
+
 // pipe
 
 #define PIPESIZE 512

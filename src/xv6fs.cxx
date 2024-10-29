@@ -7,6 +7,7 @@
 #include <cstring>
 
 #include "BlockCache.h"
+#include "Device.h"
 #include "DirEntry.h"
 #include "DiskINode.h"
 #include "INode.h"
@@ -60,6 +61,8 @@ void *op_init(struct fuse_conn_info *_) {
   INodeCache::init();
 
   SuperBlock::init(ROOTDEV);
+
+  Console::init();
 
   Log::init(ROOTDEV);  // log_init should behind superblock_init
 

@@ -13,6 +13,7 @@
 #include "INode.h"
 #include "INodeCache.h"
 #include "Log.h"
+#include "Logger.h"
 #include "SuperBlock.h"
 #include "common.h"
 
@@ -186,7 +187,7 @@ INode *INode::dirlookup(const char *name, off_t *poff) {
     DirEntry de;
     if (this->read((uint64_t)&de, off, sizeof(de)) != sizeof(de)) assert(0 && "dirlockup read");
     if (de.inum == 0) continue;
-    if (strcmp(name, de.name) == 0) {
+    if (::strcmp(name, de.name) == 0) {
       // entry matches path element
       if (poff) *poff = off;
       uint32_t inum = de.inum;
@@ -220,91 +221,105 @@ int INode::dirlink(char *name, uint32_t inum) {
   return 0;
 }
 
-/// Paths
-///
-/// @brief Copy the next path element from path into name.
-/// @return Return a pointer to the element following the copied one.
-/// The returned path has no leading slashes, so the caller can check *path=='\0' to see if the name is the last one. If no name to remove, return 0.
-///
-/// @param ret (mut)
-///
-/// Examples:
-///   skipelem("a/bb/c", name) = "bb/c", setting name = "a"
-///   skipelem("///a//bb", name) = "bb", setting name = "a"
-///   skipelem("a", name) = "", setting name = "a"
-///   skipelem("", name) = skipelem("////", name) = 0
-///
-///
-static const char *skipelem(const char *path, char *ret) {
-  while (*path == '/') path++;
-  if (*path == 0) return 0;
-  const char *s = path;
-  while (*path != '/' && *path != 0) path++;
-  int len = path - s;
-  if (len >= DIRSIZ)
-    memmove(ret, s, DIRSIZ);
-  else {
-    memmove(ret, s, len);
-    ret[len] = 0;
-  }
-  while (*path == '/') path++;
-  return path;
-}
+#include <filesystem>
 
-/// @brief Look up and return the inode for a path name.
-///
-/// @param cwd
-/// @param nameiparent If parent != 0, return the inode for the parent and copy the final path element into name, which must have room for DIRSIZ bytes.
-/// @param name (mut)
-///
-/// @warning Must be called inside a transaction since it calls inode_put().
-static INode *inode_name_(const char *path, INode *cwd, bool nameiparent, char *name) {
+/// @brief Look up the current directory of path.
+INode *inode_name(const char *path) {
   INode *ip;
-  if (*path == '/') {
+  const std::filesystem::path ppath(path);
+
+  auto ppath_it = ppath.begin();
+  if (ppath.has_parent_path()) {
     ip = INodeCache::inode_get(ROOTDEV, ROOTINO);
+    ppath_it++;
   } else {
-    ip = INodeCache::inode_dup(cwd);
+    Logger::log("inode_name: no parent path");
+    std::abort();
   }
 
-  // skipelem("a/bb/c", name) = "bb/c", setting name = "a"
-  // skipelem("///a//bb", name) = "bb", setting name = "a"
-  // skipelem("a", name) = "", setting name = "a"
-  // skipelem("", name) = skipelem("////", name) = 0
-  while ((path = skipelem(path, name)) != 0) {
+  for (; ppath_it != ppath.end(); ppath_it++) {
     ip->lock();
     if (ip->dinode.type != T_DIR) {
       INodeCache::inode_unlock_put(ip);
-      return 0;
+      return nullptr;
     }
-    if (nameiparent && *path == '\0') {
-      // Stop one level early.
-      ip->unlock();
-      return ip;
-    }
-    INode *next = ip->dirlookup(name, nullptr);
+
+    INode *next = ip->dirlookup(ppath_it->c_str(), nullptr);
     if (next == 0) {
       INodeCache::inode_unlock_put(ip);
-      return 0;
+      return nullptr;
     }
     INodeCache::inode_unlock_put(ip);
     ip = next;
   }
 
-  if (nameiparent) {
-    INodeCache::inode_put(ip);
-    return 0;
-  }
-  return ip;
-}
+  // ip with locked
 
-/// @brief Look up the current directory of path.
-INode *inode_name(const char *path) {
-  char name[DIRSIZ];
-  return inode_name_(path, nullptr, 0, name);
+  return ip;
 }
 
 /// @brief Look up the parent directory of path.
 ///
-/// @param name (mut)
+/// @param parent_basename (mut)
 ///
-INode *inode_name_parent(const char *path, char *name) { return inode_name_(path, nullptr, 1, name); }
+INode *inode_name_parent(const char *path, char *parent_basename) {
+  INode *ip;
+  const std::filesystem::path ppath(path);
+  auto ppath_it = ppath.begin();
+  auto ppath_pend = --ppath.end();
+
+  if (ppath.has_parent_path()) {
+    ip = INodeCache::inode_get(ROOTDEV, ROOTINO);
+    ppath_it++;
+  } else {
+    Logger::log("inode_name: no parent path");
+    std::abort();
+  }
+
+  for (; ppath_it != ppath_pend; ppath_it++) {
+    ip->lock();
+    if (ip->dinode.type != T_DIR) {
+      INodeCache::inode_unlock_put(ip);
+      return nullptr;
+    }
+
+    INode *next = ip->dirlookup(ppath_it->c_str(), nullptr);
+    if (next == 0) {
+      INodeCache::inode_unlock_put(ip);
+      return nullptr;
+    }
+    INodeCache::inode_unlock_put(ip);
+    ip = next;
+  }
+  // ip with locked
+
+  auto ppath_ppend = --ppath_pend;
+  ::strncpy(parent_basename, ppath_ppend->c_str(), DIRSIZ);
+
+  return ip;
+}
+
+#ifdef ENABLE_TESTS
+
+#include <gtest/gtest.h>
+
+TEST(fs, path_traverse) {
+  std::filesystem::path path = "/home/user/////documents//file.txt";
+
+  std::cout << "The path is: " << path << std::endl;
+
+  for (const auto &part : path) {
+    std::cout << "Path part: " << part << std::endl;
+  }
+
+  auto ppath_pend = --path.end();
+  auto ppath_ppend = --ppath_pend;
+
+  char buf[DIRSIZ];
+
+  ::strncpy(buf, ppath_ppend->c_str(), DIRSIZ);
+
+  std::cout << "buf: " << buf << std::endl;
+}
+
+#endif

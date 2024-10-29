@@ -7,7 +7,17 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -Wall --pedantic -g")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64 -no-pie -Wall -Werror -Wno-write-strings")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall --pedantic -g")
 
+set(CMAKE_CXX_STANDARD 20)
+
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" ${CMAKE_MODULE_PATH})
+
+option(ENABLE_TESTS "Enable unit tests" OFF)
+
+if(ENABLE_TESTS)
+    add_compile_definitions(ENABLE_TESTS) # 添加宏定义
+    enable_testing()
+endif()
+
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -28,6 +38,13 @@ add_executable("${PROJECT_NAME}"
     "src/xv6fs.cxx"
     )
 target_link_libraries("${PROJECT_NAME}" ${FUSE_LIBRARIES})
+
+if(ENABLE_TESTS)
+    find_package(GTest REQUIRED)
+    include_directories(${GTEST_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} gtest gtest_main)
+    add_test(NAME MyTests COMMAND ${PROJECT_NAME})
+endif()
 
 message("FUSE_INCLUDE_DIR ${FUSE_INCLUDE_DIR}")
 message("FUSE_LIBRARIES ${FUSE_LIBRARIES}")

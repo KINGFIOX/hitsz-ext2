@@ -17,8 +17,20 @@ extern "C" {
 
 #include "limits.h"
 
+#ifdef ENABLE_TESTS
+
+#include <gtest/gtest.h>
+
+int main(int argc, char* argv[]) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+  return 0;
+}
+
+#else
+
 static const struct fuse_operations xv6fs_ops = {
-    //     .getattr = op_getattr,
+    .getattr = op_getattr,
     //     .readlink = op_readlink,
     //     .mknod = op_mknod,
     //     .mkdir = op_mkdir,
@@ -104,3 +116,5 @@ int main(int argc, char* argv[]) {
 
   return 0;
 }
+
+#endif

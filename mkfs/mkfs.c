@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
 
   struct dinode din;
   rinode(rootino, &din);
-  din.nlink++;
+  // din.nlink++;
   winode(rootino, &din);
 
   for (size_t i = 2; i < argc; i++) {

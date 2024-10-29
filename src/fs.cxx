@@ -14,6 +14,7 @@
 #include "INodeCache.h"
 #include "Log.h"
 #include "Logger.h"
+#include "OFile.h"
 #include "SuperBlock.h"
 #include "common.h"
 
@@ -181,7 +182,7 @@ uint32_t INode::write(uint64_t src, off_t off, uint32_t n) {
 }
 
 INode *INode::dirlookup(const char *name, off_t *poff) {
-  if (this->dinode.type != T_DIR) assert(0 && "dirlookup not DIR");
+  if (this->dinode.type != DiskINode::T_DIR) assert(0 && "dirlookup not DIR");
 
   for (off_t off = 0; off < this->dinode.size; off += sizeof(DirEntry)) {
     DirEntry de;
@@ -195,7 +196,7 @@ INode *INode::dirlookup(const char *name, off_t *poff) {
     }
   }
 
-  return 0;
+  return nullptr;
 }
 
 int INode::dirlink(char *name, uint32_t inum) {
@@ -239,7 +240,7 @@ INode *inode_name(const char *path) {
 
   for (; ppath_it != ppath.end(); ppath_it++) {
     ip->lock();
-    if (ip->dinode.type != T_DIR) {
+    if (ip->dinode.type != DiskINode::T_DIR) {
       INodeCache::inode_unlock_put(ip);
       return nullptr;
     }
@@ -276,7 +277,7 @@ INode *inode_name_parent(const char *path, char *parent_basename) {
 
   for (; ppath_it != ppath_pend; ppath_it++) {
     ip->lock();
-    if (ip->dinode.type != T_DIR) {
+    if (ip->dinode.type != DiskINode::T_DIR) {
       INodeCache::inode_unlock_put(ip);
       return nullptr;
     }

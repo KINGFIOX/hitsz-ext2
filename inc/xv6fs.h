@@ -16,4 +16,6 @@ void* op_init(struct fuse_conn_info* conn);
 
 int op_getattr(const char* path, struct stat* stbuf);
 
+int op_open(const char* path, struct fuse_file_info* fi);
+
 void op_destroy(void* userdata);

@@ -28,9 +28,9 @@ static void do_fillstatbuf(const INode *in, struct stat *st) {
   memset(st, 0, sizeof(*st));
   st->st_dev = in->dev;
   st->st_ino = in->inum;
-  if (in->dinode.type == T_DIR) {
+  if (in->dinode.type == DiskINode::T_DIR) {
     st->st_mode = S_IFREG | 0755;
-  } else if (in->dinode.type == T_FILE) {
+  } else if (in->dinode.type == DiskINode::T_FILE) {
     st->st_mode = S_IFDIR | 0644;
   } else {
     Logger::log("unknown type ", __FILE__, __LINE__, __FUNCTION__);
@@ -65,7 +65,7 @@ int op_getattr(const char *path, struct stat *stbuf) {
 
   // ::printf("        nlinks=%d\n", ip->dinode.nlink);
 
-  if (ip->dinode.type == T_DEVICE && (ip->dinode.major < 0 || ip->dinode.major >= NDEV)) {
+  if (ip->dinode.type == DiskINode::T_DEVICE && (ip->dinode.major < 0 || ip->dinode.major >= NDEV)) {
     INodeCache::inode_unlock_put(ip);
     Log::end_op();
     return -EIO;

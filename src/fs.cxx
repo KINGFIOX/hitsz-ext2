@@ -253,8 +253,6 @@ INode *inode_name(const char *path) {
     ip = next;
   }
 
-  // ip with locked
-
   return ip;
 }
 
@@ -288,10 +286,9 @@ INode *inode_name_parent(const char *path, char *parent_basename) {
       INodeCache::inode_unlock_put(ip);
       return nullptr;
     }
-    INodeCache::inode_unlock_put(ip);
+    INodeCache::inode_unlock_put(ip);  // unlock ip hear
     ip = next;
   }
-  // ip with locked
 
   auto ppath_ppend = --ppath_pend;
   ::strncpy(parent_basename, ppath_ppend->c_str(), DIRSIZ);

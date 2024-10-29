@@ -8,7 +8,6 @@
 #include "PosixEnv.h"
 #include "common.h"
 
-std::mutex BlockCache::mtx;
 Block BlockCache::blocks[NBUF];
 Block BlockCache::head;
 

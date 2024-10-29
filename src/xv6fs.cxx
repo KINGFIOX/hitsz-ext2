@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 
 #include "BlockCache.h"
@@ -37,7 +38,7 @@ static void do_fillstatbuf(const INode *in, struct stat *st) {
   }
   st->st_nlink = in->dinode.nlink;
   st->st_uid = ::getuid();
-  st->st_gid = ::gettid();
+  st->st_gid = ::getgid();
   st->st_rdev = 0;  // 不会是 char, block
 
   st->st_size = in->dinode.size;
@@ -84,6 +85,8 @@ int op_getattr(const char *path, struct stat *stbuf) {
 
   ip->lock();
 
+  // ::printf("        nlinks=%d\n", ip->dinode.nlink);
+
   if (ip->dinode.type == T_DEVICE && (ip->dinode.major < 0 || ip->dinode.major >= NDEV)) {
     INodeCache::inode_unlock_put(ip);
     Log::end_op();
@@ -102,7 +105,7 @@ int op_getattr(const char *path, struct stat *stbuf) {
   //   std::cout << "bno: " << ip->dinode.addrs[0] << std::endl;
   //   for (int i = 0; i < 5; i++) {
   //     DirEntry *dir = (DirEntry *)buf;
-  //     std::cout << "name: " << dir->name << "; " << "inum: " << dir->inum << std::endl;
+  //     std::cout << "name: " << dir[i].name << "; " << "inum: " << dir[i].inum << std::endl;
   //   }
   // }
 

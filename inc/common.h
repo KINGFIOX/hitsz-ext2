@@ -49,3 +49,11 @@
 #define ROOTDEV 1  // device number of file system root disk (根文件系统的设备号)
 
 #define NDEV 10  // maximum major device number
+
+// pipe
+
+#define PIPESIZE 512
+
+// 打开文件表
+
+#define NFILE 100  // open files per system

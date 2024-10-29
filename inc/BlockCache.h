@@ -9,7 +9,7 @@ struct Block;
 
 class BlockCache {
  public:
-  static std::mutex mtx;
+  static inline std::mutex mtx;
   static Block blocks[NBUF];
 
   // Linked list of all buffers, through prev/next.

@@ -1,4 +1,5 @@
-MOUNT_POINT = /home/wangfiox/mnt/xv6fs
+MOUNT_POINT = /mnt/xv6fs
+PWD = /home/wangfiox/Documents/hitsz-ext2-fuse
 
 all: xv6fs fs.img
 
@@ -14,20 +15,20 @@ mkfs/mkfs: mkfs/mkfs.c
 
 run: xv6fs fs.img
 	touch xv6fs.log
-	sudo $(PWD)/build/bin/xv6fs $(PWD)/xv6fs.log ./fs.img $(MOUNT_POINT)
+	$(PWD)/build/bin/xv6fs $(PWD)/xv6fs.log ./fs.img $(MOUNT_POINT)
 
 umount:
-	sudo fusermount -u $(MOUNT_POINT)
+	fusermount -u $(MOUNT_POINT)
 
 ls:
-	sudo $(PWD)/a.out $(MOUNT_POINT)
+	$(PWD)/a.out $(MOUNT_POINT)
 
 gdb:
 	make clean
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja
 	cmake --build build
 	make fs.img
-	sudo gdb $(PWD)/build/bin/xv6fs -ex "run $(PWD)/xv6fs.log $(PWD)/fs.img $(MOUNT_POINT)"
+	gdb $(PWD)/build/bin/xv6fs -ex "b op_getattr" -ex "run $(PWD)/xv6fs.log $(PWD)/fs.img $(MOUNT_POINT)"
 
 clean:
 	rm -rf ./build 

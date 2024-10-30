@@ -34,7 +34,7 @@ static INode *create(const char *path, uint16_t type, uint16_t major, uint16_t m
     // 如果原本存在, 并且 type 也符合, 则返回
     if (type == DiskINode::T_FILE && (ip->dinode.type == DiskINode::T_FILE || ip->dinode.type == DiskINode::T_DEVICE)) return ip;
     INodeCache::inode_unlock_put(ip);
-    return nullptr;  // otherwise, return nullptr
+    return nullptr;  // conflict
   }
 
   // if not exist, create one
@@ -97,18 +97,18 @@ OFile *do_open(const char *path, int omode) {
       return nullptr;
     }
     ip->lock();
-    if (ip->dinode.type == DiskINode::T_DEVICE && omode != O_RDONLY) {
+    if (ip->dinode.type == DiskINode::T_DIR && ((omode & O_ACCMODE) != O_RDONLY) && (omode & O_TRUNC) && !(omode & O_DIRECTORY)) {
       INodeCache::inode_unlock_put(ip);
       Log::end_op();
       return nullptr;
     }
   }
 
-  if (ip->dinode.type == DiskINode::T_DEVICE && (ip->dinode.major < 0 || ip->dinode.major >= NDEV)) {
-    INodeCache::inode_unlock_put(ip);
-    Log::end_op();
-    return nullptr;
-  }
+  // if (ip->dinode.type == DiskINode::T_DEVICE && (ip->dinode.major < 0 || ip->dinode.major >= NDEV)) {
+  //   INodeCache::inode_unlock_put(ip);
+  //   Log::end_op();
+  //   return nullptr;
+  // }
 
   OFile *f = FileTable::ofile_alloc();
   if (!f) {
@@ -140,7 +140,7 @@ OFile *do_open(const char *path, int omode) {
 
 int op_open(const char *path, struct fuse_file_info *fi) {
   Logger::log("enter: ", __FILE__, ":", __LINE__);
-  Logger::log("path = %s", path);
+  Logger::log("path = ", path);
 
   OFile *file = do_open(path, fi->flags);
   if (file == nullptr) {
@@ -148,6 +148,7 @@ int op_open(const char *path, struct fuse_file_info *fi) {
     return -ENOENT;
   }
   fi->fh = (uint64_t)file;
+  Logger::log("fi->fh = ", fi->fh);
 
   Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;

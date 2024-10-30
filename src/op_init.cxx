@@ -1,5 +1,6 @@
 #include <unistd.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -25,6 +26,8 @@ extern "C" {
 void *op_init(struct fuse_conn_info *_) {
   Logger::log("entry: ", __FILE__, ":", __LINE__);
   // init IO
+
+  assert(BSIZE % sizeof(DirEntry) == 0);
 
   BlockCache::init();
 

@@ -1,6 +1,6 @@
 all: xv6fs fs.img
 
-xv6fs:
+xv6fs: ./src ./inc
 	cmake -S . -B build
 	cmake --build build
 
@@ -14,4 +14,7 @@ run: xv6fs fs.img
 	./build/bin/xv6fs xv6fs.log ./fs.img ./mnt/
 
 clean:
-	rm -rf build fs.img mkfs/mkfs
+	rm -rf ./build 
+	rm -rf ./fs.img
+	rm -rf ./mkfs/mkfs
+	rm -rf ./xv6fs.log

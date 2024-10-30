@@ -65,3 +65,8 @@
 // 打开文件表
 
 #define NFILE 100  // open files per system
+
+// color
+
+#define ANSI_COLOR_BLUE "\x1b[34m"
+#define ANSI_COLOR_RESET "\x1b[0m"

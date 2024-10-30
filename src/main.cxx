@@ -41,8 +41,8 @@ static const struct fuse_operations xv6fs_ops = {
     //     .rename = op_rename,
     //     .link = op_link,
     //     .chmod = op_chmod,
-    //     .chown = op_chown,
-    //     .truncate = op_truncate,
+    .chown = op_chown,
+    .truncate = op_truncate,
     .open = op_open,
     .read = op_read,
     .write = op_write,
@@ -65,7 +65,7 @@ static const struct fuse_operations xv6fs_ops = {
     //     .ftruncate = op_ftruncate,
     .fgetattr = op_fgetattr,
     .lock = NULL,
-    //     .utimens = op_utimens,
+    .utimens = op_utimens,
     //     .bmap = NULL,
 };
 

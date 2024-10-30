@@ -12,6 +12,7 @@
 #include "Log.h"
 #include "Logger.h"
 #include "OFile.h"
+#include "common.h"
 #include "config.h"
 #include "xv6fs.h"
 

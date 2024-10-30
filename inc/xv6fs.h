@@ -31,6 +31,8 @@ int op_write(const char* path, const char* buf, size_t size, off_t offset, struc
 int op_unlink(const char* path);
 int op_setxattr(const char*, const char*, const char*, size_t, int);
 int op_flush(const char* path, struct fuse_file_info* fi);
+int op_utimens(const char* path, const struct timespec tv[2]);
+int op_truncate(const char* path, off_t length);
 
 OFile* do_open(const char* path, int omode);
 void do_fillstatbuf(const INode* ino, struct stat* st);

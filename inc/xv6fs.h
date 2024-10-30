@@ -33,7 +33,14 @@ int op_setxattr(const char*, const char*, const char*, size_t, int);
 int op_flush(const char* path, struct fuse_file_info* fi);
 int op_utimens(const char* path, const struct timespec tv[2]);
 int op_truncate(const char* path, off_t length);
+int op_chown(const char* path, uid_t uid, gid_t gid);
+int op_mkdir(const char* path, mode_t mode);
+int op_link(const char* source, const char* dest);
+int op_rename(const char* source, const char* dest);
+int op_chmod(const char* path, mode_t mode);
 
 OFile* do_open(const char* path, int omode);
 void do_fillstatbuf(const INode* ino, struct stat* st);
 INode* create(const char* path, uint16_t type, uint16_t major, uint16_t minor);
+int do_link(const char* source, const char* dest);
+int do_unlink(const char* path);

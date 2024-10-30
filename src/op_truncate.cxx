@@ -22,9 +22,9 @@ int op_truncate(const char* path, off_t length) {
     return -ENOENT;
   }
 
-  assert(file->ip->dinode.size % BSIZE == 0);
+  // assert(file->ip->dinode.size % BSIZE == 0);
 
-  uint32_t n_block = file->ip->dinode.size / BSIZE;
+  uint32_t n_block = (file->ip->dinode.size + BSIZE - 1) / BSIZE;
   uint32_t n_block_new = (length + BSIZE - 1) / BSIZE;
 
   if (n_block_new < n_block) {

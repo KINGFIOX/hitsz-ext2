@@ -26,10 +26,7 @@ static bool is_dir_empty(INode* dp) {
   return true;
 }
 
-int op_unlink(const char* path) {
-  Logger::log("enter: ", __FILE__, ":", __LINE__);
-  Logger::log("path = ", path);
-
+int do_unlink(const char* path) {
   char basename[DIRSIZ];
 
   Log::begin_op();
@@ -80,5 +77,13 @@ int op_unlink(const char* path) {
   Log::end_op();
 
   Logger::log("leave: ", __FILE__, ":", __LINE__);
+
   return 0;
+}
+
+int op_unlink(const char* path) {
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
+  int ret = do_unlink(path);
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
+  return ret;
 }

@@ -29,6 +29,7 @@ int op_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
   }
   for (size_t i = offset; i < fp->ip->dinode.size; i += sizeof(DirEntry)) {
     DirEntry de;
+    ::memset(&de, 0, sizeof(de));
     fp->read((char *)&de, sizeof(DirEntry));
     if (de.inum == 0) {
       continue;

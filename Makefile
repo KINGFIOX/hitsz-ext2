@@ -28,7 +28,7 @@ gdb:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja
 	cmake --build build
 	make fs.img
-	gdb $(PWD)/build/bin/xv6fs -ex "b op_getattr" -ex "run $(PWD)/xv6fs.log $(PWD)/fs.img $(MOUNT_POINT)"
+	gdb $(PWD)/build/bin/xv6fs -ex "run $(PWD)/xv6fs.log $(PWD)/fs.img $(MOUNT_POINT)"
 
 clean:
 	rm -rf ./build 

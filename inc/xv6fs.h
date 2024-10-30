@@ -1,8 +1,14 @@
 #pragma once
 
 /// @brief this is the data that should pass to fuse_main
+
 #include "INode.h"
 #include "OFile.h"
+#include "config.h"
+
+extern "C" {
+#include <fuse/fuse.h>
+}
 
 struct XV6FSData {
   int fd;  // file descriptor of the disk image
@@ -20,5 +26,8 @@ int op_open(const char* path, struct fuse_file_info* fi);
 int op_access(const char* path, int mask);
 void op_destroy(void* userdata);
 int op_create(const char* path, mode_t mode, struct fuse_file_info* fi);
+int op_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi);
+int op_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi);
 
 OFile* do_open(const char* path, int omode);
+void do_fillstatbuf(const INode* ino, struct stat* st);

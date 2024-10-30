@@ -41,7 +41,7 @@ void FileTable::ofile_close(OFile* f) {
   mtx.unlock();
 
   if (ff.type == OFile::FD_PIPE) {
-    // TODO pipe_close
+    ff.pipe->close(ff.writable);
   } else if (ff.type == OFile::FD_INODE || ff.type == OFile::FD_DEVICE) {
     Log::begin_op();
     INodeCache::inode_put(ff.ip);

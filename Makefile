@@ -1,6 +1,6 @@
 all: xv6fs fs.img
 
-xv6fs: ./src ./inc
+xv6fs: ./src ./inc CMakeLists.txt
 	cmake -S . -B build
 	cmake --build build
 

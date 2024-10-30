@@ -22,3 +22,12 @@ int op_getxattr(const char *path, const char *name, char *buf, size_t size) {
   Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }
+
+int op_listxattr(const char *path, char *buf, size_t size) {
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
+
+  ::strncpy(buf, "NULL", size);
+
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
+  return 0;
+}

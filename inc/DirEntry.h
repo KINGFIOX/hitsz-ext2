@@ -5,6 +5,6 @@
 #include "common.h"
 
 struct DirEntry {
-  uint32_t inum;
+  uint16_t inum;
   char name[DIRSIZ];
 };

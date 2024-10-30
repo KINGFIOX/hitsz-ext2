@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  char* img = argv[2];
+  char* img = ::realpath(argv[2], nullptr);
 
   int fd = ::open(img, O_RDWR | O_CREAT, 0666);
 
@@ -112,6 +112,9 @@ int main(int argc, char* argv[]) {
 
   ::free(mnt);
   mnt = nullptr;
+
+  ::free(img);
+  img = nullptr;
 
   Logger::destroy();
 

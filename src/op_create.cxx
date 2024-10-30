@@ -10,7 +10,7 @@ extern "C" {
 }
 
 int op_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
-  Logger::log("enter");
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
   Logger::log("path = %s, mode: 0%o", path, mode);
 
   OFile *fp = do_open(path, O_CREAT | mode);
@@ -20,6 +20,6 @@ int op_create(const char *path, mode_t mode, struct fuse_file_info *fi) {
     return -EIO;
   }
 
-  Logger::log("leave");
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }

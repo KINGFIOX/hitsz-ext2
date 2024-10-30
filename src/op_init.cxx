@@ -23,6 +23,7 @@ extern "C" {
 }
 
 void *op_init(struct fuse_conn_info *_) {
+  Logger::log("entry: ", __FILE__, ":", __LINE__);
   // init IO
   struct fuse_context *cntx = fuse_get_context();
   XV6FSData *user_data = (XV6FSData *)cntx->private_data;
@@ -41,6 +42,7 @@ void *op_init(struct fuse_conn_info *_) {
   Logger::log(__func__, "fuse init");
 
   // return e2data;
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return user_data;
 }
 

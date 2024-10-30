@@ -139,7 +139,7 @@ OFile *do_open(const char *path, int omode) {
 }
 
 int op_open(const char *path, struct fuse_file_info *fi) {
-  Logger::log("enter");
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
   Logger::log("path = %s", path);
 
   OFile *file = do_open(path, fi->flags);
@@ -149,6 +149,6 @@ int op_open(const char *path, struct fuse_file_info *fi) {
   }
   fi->fh = (uint64_t)file;
 
-  Logger::log("leave");
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }

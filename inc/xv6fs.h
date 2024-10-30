@@ -28,6 +28,7 @@ void op_destroy(void* userdata);
 int op_create(const char* path, mode_t mode, struct fuse_file_info* fi);
 int op_read(const char* path, char* buf, size_t size, off_t offset, struct fuse_file_info* fi);
 int op_readdir(const char* path, void* buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi);
+int op_getxattr(const char* path, const char* name, char* buf, size_t size);
 
 OFile* do_open(const char* path, int omode);
 void do_fillstatbuf(const INode* ino, struct stat* st);

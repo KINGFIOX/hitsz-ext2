@@ -15,7 +15,7 @@ extern "C" {
 }
 
 int op_statfs(const char *path, struct statvfs *buf) {
-  Logger::log("enter");
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
 
   ::memset(buf, 0, sizeof(struct statvfs));
 
@@ -55,6 +55,6 @@ int op_statfs(const char *path, struct statvfs *buf) {
 
   buf->f_namemax = DIRSIZ;
 
-  Logger::log("leave");
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }

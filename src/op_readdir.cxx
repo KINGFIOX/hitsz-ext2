@@ -16,6 +16,7 @@ extern "C" {
 }
 
 int op_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi) {
+  Logger::log("entry: ", __FILE__, ":", __LINE__);
   OFile *fp = (OFile *)fi->fh;
   if (fp == nullptr) {
     return -ENOENT;
@@ -41,5 +42,6 @@ int op_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
       return -ENOMEM;
     }
   }
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }

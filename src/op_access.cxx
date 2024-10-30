@@ -7,9 +7,9 @@ extern "C" {
 }
 
 int op_access(const char *path, int mask) {
-  Logger::log("enter op_access");
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
   Logger::log("path = %s, mask = 0%o", path, mask);
 
-  Logger::log("leave");
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }

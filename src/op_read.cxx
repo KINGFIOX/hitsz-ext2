@@ -10,6 +10,7 @@ extern "C" {
 }
 
 int op_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_file_info *fi) {
+  Logger::log("entry: ", __FILE__, ":", __LINE__);
   OFile *fp = (OFile *)fi->fh;  // 有个问题, 这里的 path 没有用到
   if (fp == nullptr) {
     return -ENOENT;
@@ -19,5 +20,6 @@ int op_read(const char *path, char *buf, size_t size, off_t offset, struct fuse_
   }
   fp->off = offset;  // FIXME
   fp->read(buf, size);
+  Logger::log("entry: ", __FILE__, ":", __LINE__);
   return size;
 }

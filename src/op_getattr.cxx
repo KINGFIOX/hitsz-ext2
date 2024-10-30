@@ -54,14 +54,17 @@ void do_fillstatbuf(const INode *ino, struct stat *st) {
 }
 
 int op_fgetattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
+  Logger::log("entry: ", __FILE__, ":", __LINE__);
   OFile *file = (OFile *)fi->fh;
   INode *ip = file->ip;
   do_fillstatbuf(ip, stbuf);
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }
 
 int op_getattr(const char *path, struct stat *stbuf) {
-  Logger::log("enter ", "path = ", path);
+  Logger::log("enter: ", __FILE__, ":", __LINE__);
+  Logger::log("path = ", path);
 
   Log::begin_op();
 
@@ -98,7 +101,7 @@ int op_getattr(const char *path, struct stat *stbuf) {
   //   }
   // }
 
-  Logger::log("path: %s, size: %d", path, stbuf->st_size);
-  Logger::log("leave");
+  Logger::log("path: ", path, ", size: ", stbuf->st_size);
+  Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;
 }

@@ -10,11 +10,6 @@ extern "C" {
 #include <fuse/fuse.h>
 }
 
-struct XV6FSData {
-  int fd;  // file descriptor of the disk image
-  char* _mmap_base;
-};
-
 INode* inode_name(const char* path);
 INode* inode_name_parent(const char* path, char* name);
 

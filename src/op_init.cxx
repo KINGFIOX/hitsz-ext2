@@ -25,9 +25,6 @@ extern "C" {
 void *op_init(struct fuse_conn_info *_) {
   Logger::log("entry: ", __FILE__, ":", __LINE__);
   // init IO
-  struct fuse_context *cntx = fuse_get_context();
-  XV6FSData *user_data = (XV6FSData *)cntx->private_data;
-  PosixEnv::_mmap_base = user_data->_mmap_base;
 
   BlockCache::init();
 
@@ -43,7 +40,7 @@ void *op_init(struct fuse_conn_info *_) {
 
   // return e2data;
   Logger::log("leave: ", __FILE__, ":", __LINE__);
-  return user_data;
+  return NULL;
 }
 
 void op_destroy(void *userdata) { Logger::log(__func__, "fuse destroy"); }

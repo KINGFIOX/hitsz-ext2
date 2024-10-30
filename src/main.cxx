@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "Logger.h"
+#include "PosixEnv.h"
 #include "config.h"
 #include "xv6fs.h"
 
@@ -32,7 +33,7 @@ int main(int argc, char* argv[]) {
 static const struct fuse_operations xv6fs_ops = {
     .getattr = op_getattr,
     //     .readlink = op_readlink,
-    //     .mknod = op_mknod,
+    .mknod = op_mknod,
     //     .mkdir = op_mkdir,
     .unlink = op_unlink,
     //     .rmdir = op_rmdir,
@@ -98,13 +99,13 @@ int main(int argc, char* argv[]) {
   char* mnt = ::realpath(argv[3], nullptr);
   Logger::log("mount point: ", mnt);
 
-  XV6FSData user_data = {.fd = fd, ._mmap_base = _mmap_base};
-
   argv[1] = "-f";
   argv[2] = "-d";
   argv[3] = mnt;
 
-  ::fuse_main(argc, argv, &xv6fs_ops, &user_data);
+  PosixEnv::_mmap_base = _mmap_base;
+
+  ::fuse_main(argc, argv, &xv6fs_ops, NULL);
 
   ::munmap(_mmap_base, sb.st_size);
   ::close(fd);

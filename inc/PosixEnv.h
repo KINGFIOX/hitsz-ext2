@@ -20,7 +20,7 @@ class PosixEnv {
   }
 
  private:
-  friend void *op_init(struct fuse_conn_info *conn);
+  friend int main(int argc, char *argv[]);
   static inline char *_mmap_base;
   static inline std::mutex mtx;
 };

@@ -1,7 +1,7 @@
 all: xv6fs fs.img
 
 xv6fs:
-	cmake -S . -B build
+	cmake -S . -B build -G Ninja
 	cmake --build build
 
 fs.img: mkfs/mkfs README.md

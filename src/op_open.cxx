@@ -143,7 +143,7 @@ int op_open(const char *path, struct fuse_file_info *fi) {
   Logger::log("path = %s", path);
 
   OFile *file = do_open(path, fi->flags);
-  if (file == NULL) {
+  if (file == nullptr) {
     Logger::log("do_open(", path, "); failed");
     return -ENOENT;
   }

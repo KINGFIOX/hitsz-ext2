@@ -59,3 +59,17 @@
 2024-10-30 10:35:11 path: %s, size: %d/1024
 2024-10-30 10:35:11 leave
 2024-10-30 10:35:15 op_destroyfuse destroy
+2024-10-30 10:48:11 xv6fs version: 0.0.11
+2024-10-30 10:48:11 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
+2024-10-30 10:48:11 op_initfuse init
+2024-10-30 10:48:11 enter path = /
+2024-10-30 10:48:11 path: %s, size: %d/1024
+2024-10-30 10:48:11 leave
+2024-10-30 10:48:14 op_destroyfuse destroy
+2024-10-30 10:55:09 xv6fs version: 0.0.11
+2024-10-30 10:55:09 mount point: /home/wangfiox/Documents/hitsz-ext2-fuse/mnt
+2024-10-30 10:55:09 op_initfuse init
+2024-10-30 10:55:09 enter path = /
+2024-10-30 10:55:09 path: %s, size: %d/1024
+2024-10-30 10:55:09 leave
+2024-10-30 10:55:11 op_destroyfuse destroy

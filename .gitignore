@@ -7,3 +7,4 @@ Testing
 xv6fs.log
 strace.txt
 .gdb_history
+a.out

@@ -32,3 +32,4 @@ int op_unlink(const char* path);
 
 OFile* do_open(const char* path, int omode);
 void do_fillstatbuf(const INode* ino, struct stat* st);
+INode* create(const char* path, uint16_t type, uint16_t major, uint16_t minor);

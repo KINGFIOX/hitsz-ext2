@@ -1,6 +1,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
@@ -60,6 +61,9 @@ void do_fillstatbuf(const INode *ino, struct stat *st) {
 int op_fgetattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi) {
   Logger::log("entry: ", __FILE__, ":", __LINE__);
   OFile *file = (OFile *)fi->fh;
+  if (file == nullptr) {
+    return -ENOENT;
+  }
   INode *ip = file->ip;
   do_fillstatbuf(ip, stbuf);
   Logger::log("leave: ", __FILE__, ":", __LINE__);

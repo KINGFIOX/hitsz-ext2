@@ -1,3 +1,6 @@
+#include <cstdio>
+
+#include "Log.h"
 #include "Logger.h"
 #include "OFile.h"
 #include "config.h"
@@ -10,12 +13,11 @@ extern "C" {
 int op_mknod(const char *path, mode_t mode, dev_t dev) {
   Logger::log("enter: ", __FILE__, ":", __LINE__);
 
-  OFile *fp = do_open(path, O_CREAT | mode);
+  Log::begin_op();
 
-  if (fp == nullptr) {
-    Logger::log("op_open(path, fi); failed");
-    return -EIO;
-  }
+  ::printf("mknod: path = %s, mode = %x, dev = %ld\n", path, mode, dev);
+
+  Log::end_op();
 
   Logger::log("leave: ", __FILE__, ":", __LINE__);
   return 0;

@@ -19,7 +19,7 @@ extern "C" {
 }
 
 /// @warning return ip locked
-static INode *create(const char *path, uint16_t type, uint16_t major, uint16_t minor) {
+INode *create(const char *path, uint16_t type, uint16_t major, uint16_t minor) {
   char name[DIRSIZ];
 
   INode *dp = inode_name_parent(path, name);

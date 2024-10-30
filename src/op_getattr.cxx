@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "BlockCache.h"
@@ -26,7 +27,7 @@ extern "C" {
 /// @param in (const)
 /// @param st (mut)
 void do_fillstatbuf(const INode *ino, struct stat *st) {
-  memset(st, 0, sizeof(*st));
+  ::memset(st, 0, sizeof(*st));
   st->st_dev = ino->dev;
   st->st_ino = ino->inum;
   if (ino->dinode.type == DiskINode::T_DIR) {
@@ -34,15 +35,15 @@ void do_fillstatbuf(const INode *ino, struct stat *st) {
   } else if (ino->dinode.type == DiskINode::T_FILE) {
     st->st_mode = S_IFDIR | 0777;
   } else {
-    Logger::log("unknown type ", __FILE__, __LINE__, __FUNCTION__);
-    Logger::log("unknown type ", __FILE__, __LINE__, __FUNCTION__);
+    ::printf("unknown type: %d", ino->dinode.type);
+    std::abort();
   }
   st->st_nlink = ino->dinode.nlink;
-  ::printf("        nlinks=%lu\n", st->st_nlink);
+  // ::printf("        nlinks=%lu\n", st->st_nlink);
   st->st_uid = ::getuid();
-  ::printf("        uid=%d\n", st->st_uid);
+  // ::printf("        uid=%d\n", st->st_uid);
   st->st_gid = ::getgid();
-  ::printf("        gid=%d\n", st->st_gid);
+  // ::printf("        gid=%d\n", st->st_gid);
   st->st_rdev = 0;  // 不会是 char, block
 
   st->st_size = ino->dinode.size;

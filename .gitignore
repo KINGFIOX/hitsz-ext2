@@ -5,3 +5,4 @@ mkfs/mkfs
 fs.img
 Testing
 xv6fs.log
+strace.txt

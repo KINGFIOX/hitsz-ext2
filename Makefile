@@ -11,6 +11,8 @@ mkfs/mkfs: mkfs/mkfs.c
 	gcc -Wall -Werror -I. -o mkfs/mkfs mkfs/mkfs.c
 
 run: xv6fs fs.img
+	rm -rf ./mnt
+	mkdir ./mnt
 	./build/bin/xv6fs xv6fs.log ./fs.img ./mnt/
 
 clean:

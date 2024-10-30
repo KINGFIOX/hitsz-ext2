@@ -1,5 +1,6 @@
 #include <fcntl.h>
 
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <iostream>
@@ -21,6 +22,8 @@ extern "C" {
 /// @warning return ip locked
 INode *create(const char *path, uint16_t type, uint16_t major, uint16_t minor) {
   char name[DIRSIZ];
+
+  assert(type == DiskINode::T_FILE || type == DiskINode::T_DIR);
 
   INode *dp = inode_name_parent(path, name);
   if (!dp) return 0;

@@ -55,6 +55,7 @@ class Log {
   static void recover_from_log(void);
 
   /// @brief block_cache(mem) -> log(disk)
+  friend int op_flush(const char *path, struct fuse_file_info *fi);
   static void write_log(void);
 
   ///

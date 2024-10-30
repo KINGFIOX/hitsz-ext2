@@ -33,6 +33,7 @@ int op_listxattr(const char* path, char* buf, size_t size);
 int op_release(const char* path, struct fuse_file_info* fi);
 int op_mknod(const char* path, mode_t mode, dev_t dev);
 int op_write(const char* path, const char* buf, size_t size, off_t offset, struct fuse_file_info* fi);
+int op_unlink(const char* path);
 
 OFile* do_open(const char* path, int omode);
 void do_fillstatbuf(const INode* ino, struct stat* st);

@@ -4,6 +4,8 @@
 
 #define BSIZE 1024  // block size
 
+#define FSSIZE 1000  // size of file system in blocks
+
 // log
 
 #define MAX_OP_BLOCKS 10              // max # of blocks any FS op writes
@@ -31,6 +33,8 @@
 #define INODE_PER_BLOCK (BSIZE / sizeof(DiskINode))
 
 #define INODE_BLOCK(i) ((i) / INODE_PER_BLOCK + SuperBlock::inodestart)  // Block containing inode i
+
+#define NINODES 200
 
 // fs
 

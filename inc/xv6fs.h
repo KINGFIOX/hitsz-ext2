@@ -18,6 +18,8 @@ int op_getattr(const char* path, struct stat* stbuf);
 
 int op_fgetattr(const char* path, struct stat* stbuf, struct fuse_file_info* fi);
 
+int op_statfs(const char* path, struct statvfs* buf);
+
 int op_open(const char* path, struct fuse_file_info* fi);
 
 void op_destroy(void* userdata);

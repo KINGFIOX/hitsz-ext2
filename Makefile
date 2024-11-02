@@ -1,5 +1,5 @@
 MOUNT_POINT = /mnt/xv6fs
-PWD = /home/wangfiox/Documents/hitsz-ext2-fuse
+PWD = /home/wangfiox/Documents/xv6fs-fuse-oslab24-hitsz
 
 all: xv6fs fs.img
 
@@ -14,11 +14,11 @@ mkfs/mkfs: mkfs/mkfs.c
 	gcc -Wall -Werror -I. -o mkfs/mkfs mkfs/mkfs.c
 
 run: xv6fs fs.img
-	touch xv6fs.log
-	$(PWD)/build/bin/xv6fs $(PWD)/xv6fs.log ./fs.img $(MOUNT_POINT)
+	rm -f xv6fs.log
+	sudo $(PWD)/build/bin/xv6fs $(PWD)/xv6fs.log ./fs.img $(MOUNT_POINT)
 
 umount:
-	fusermount -u $(MOUNT_POINT)
+	sudo fusermount -u $(MOUNT_POINT)
 
 ls:
 	$(PWD)/a.out $(MOUNT_POINT)
@@ -28,7 +28,7 @@ gdb:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja
 	cmake --build build
 	make fs.img
-	gdb $(PWD)/build/bin/xv6fs -ex "run $(PWD)/xv6fs.log $(PWD)/fs.img $(MOUNT_POINT)"
+	sudo gdb $(PWD)/build/bin/xv6fs -ex "run $(PWD)/xv6fs.log $(PWD)/fs.img $(MOUNT_POINT)"
 
 clean:
 	rm -rf ./build 

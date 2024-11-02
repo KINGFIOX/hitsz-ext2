@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+#include <map>
 #include <mutex>
 
 #include "Block.h"
@@ -7,15 +9,11 @@
 
 struct Block;
 
+struct BlockKey;
+
 class BlockCache {
  public:
   static inline std::mutex mtx;
-  static Block blocks[NBUF];
-
-  // Linked list of all buffers, through prev/next.
-  // Sorted by how recently the buffer was used.
-  // head.next is most recent, head.prev is least.
-  static Block head;
 
   static void init(void);
 
@@ -27,5 +25,9 @@ class BlockCache {
   static void block_unpin(Block *b);
 
  private:
+  /// @brief Return a locked block with the contents of the indicated block.
   static Block *block_get(uint32_t dev, uint32_t blockno);
+
+ private:
+  static inline std::map<BlockKey /*Key*/, Block * /*Value*/> blocks;
 };

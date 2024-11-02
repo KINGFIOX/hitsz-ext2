@@ -1,3 +1,4 @@
+
 #include "BlockCache.h"
 
 #include <cassert>
@@ -8,72 +9,54 @@
 #include "PosixEnv.h"
 #include "common.h"
 
-Block BlockCache::blocks[NBUF];
-Block BlockCache::head;
-
 void BlockCache::init(void) {
-  Block *b;
-
-  // Create linked list of buffers
-  head.prev = &head;
-  head.next = &head;
-  for (b = blocks; b < blocks + NBUF; b++) {
-    b->next = head.next;
-    b->prev = &head;
-    head.next->prev = b;
-    head.next = b;
-  }
+  // do nothing
 }
 
-/// Return a locked block with the contents of the indicated block.
 Block *BlockCache::block_get(uint32_t dev, uint32_t blockno) {
   Block *b;
 
   mtx.lock();
 
-  // Is the block already cached?
-  for (b = head.next; b != &head; b = b->next) {
-    if (b->dev == dev && b->blockno == blockno) {
-      b->refcnt++;
-      mtx.unlock();
-      b->mtx.lock();
-      return b;
-    }
+  auto it = blocks.find(BlockKey(dev, blockno));
+  if (it != blocks.end()) {
+    b = it->second;
+    b->refcnt++;
+    b->mtx.lock();
+    mtx.unlock();
+    return b;
   }
 
-  // Not cached.
-  // Recycle the least recently used (LRU) unused buffer.
-  for (b = head.prev; b != &head; b = b->prev) {
-    if (b->refcnt == 0) {
-      b->dev = dev;
-      b->blockno = blockno;
-      b->valid = 0;
-      b->refcnt = 1;
-      mtx.unlock();
-      b->mtx.lock();
-      return b;
-    }
-  }
+  b = new Block();
+  b->dev = dev;
+  b->blockno = blockno;
+  b->valid = false;
+  b->refcnt = 1;
+  blocks[BlockKey(dev, blockno)] = b;  // insert into map
+  b->mtx.lock();
+  mtx.unlock();
 
-  assert(0 && "no free buffer");
+  return b;
 }
 
 Block *BlockCache::block_read(uint32_t dev, uint32_t blockno) {
   Block *b = block_get(dev, blockno);
   if (!b->valid) {
     PosixEnv::read(b);
-    b->valid = 1;
+    b->valid = true;
   }
+  assert(b->mtx.try_lock() == false && "return locked block");
   return b;
 }
 
 void BlockCache::block_write(Block *b) {
-  // if (!holdingsleep(&b->lock)) panic("bwrite");
+  assert(b->mtx.try_lock() == false && "block is already locked");
   PosixEnv::write(b);
 }
 
 void BlockCache::block_release(Block *b) {
   // assert( b.is_locked() );
+  assert(b->mtx.try_lock() == false && "block is not locked");
 
   b->mtx.unlock();
 
@@ -81,12 +64,8 @@ void BlockCache::block_release(Block *b) {
   b->refcnt--;
   if (b->refcnt == 0) {
     // no one is waiting for it.
-    b->next->prev = b->prev;
-    b->prev->next = b->next;
-    b->next = head.next;
-    b->prev = &head;
-    head.next->prev = b;
-    head.next = b;
+    blocks.erase(BlockKey(b->dev, b->blockno));
+    delete b;
   }
 
   mtx.unlock();

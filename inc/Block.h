@@ -6,6 +6,17 @@
 #include "BlockCache.h"
 #include "common.h"
 
+class BlockCache;
+
+struct BlockKey {
+  uint32_t dev;
+  uint32_t blockno;
+
+  BlockKey(uint32_t dev, uint32_t blockno) : dev(dev), blockno(blockno) {}
+
+  bool operator<(const BlockKey &other) const { return dev < other.dev || (dev == other.dev && blockno < other.blockno); }
+};
+
 struct Block {
   bool valid;  // has data been read from disk?
   // bool disk;   // does disk "own" buf?
@@ -17,6 +28,4 @@ struct Block {
 
  private:
   friend class BlockCache;
-  Block *prev;  // LRU cache list
-  Block *next;
 };

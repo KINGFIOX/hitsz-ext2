@@ -10,6 +10,7 @@
 class INodeCache {
  private:
   static inline std::mutex mtx;
+  friend int op_flush(const char* path, struct fuse_file_info* fi);
   static inline std::map<INodeKey, INode*> inodes;
 
  public:

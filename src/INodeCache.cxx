@@ -13,36 +13,27 @@
 #include "SuperBlock.h"
 #include "common.h"
 
-std::mutex INodeCache::mtx;
-INode INodeCache::inodes[NINODE];
-
-void INodeCache::init(void) { /* do nothing */ }
+void INodeCache::init(void) {
+  // do nothing
+}
 
 INode *INodeCache::inode_get(uint32_t dev, uint32_t inum) {
-  INode *ip = nullptr;
-  INode *empty = nullptr;
-
   mtx.lock();
 
-  // Is the inode already in the table?
-  for (ip = &inodes[0]; ip < &inodes[NINODE]; ip++) {
-    if (ip->ref > 0 && ip->dev == dev && ip->inum == inum) {
-      ip->ref++;
-      mtx.unlock();
-      return ip;
-    }
-    if (empty == 0 && ip->ref == 0)  // Remember empty slot.
-      empty = ip;
+  auto it = inodes.find(INodeKey(dev, inum));
+  if (it != inodes.end()) {
+    INode *ip = it->second;
+    ip->ref++;
+    mtx.unlock();
+    return ip;
   }
 
-  // Recycle an inode entry.
-  assert(empty && "no inodes");
-
-  ip = empty;
+  INode *ip = new INode();
   ip->dev = dev;
   ip->inum = inum;
   ip->ref = 1;
-  ip->valid = 0;
+  ip->valid = false;
+  inodes[INodeKey(dev, inum)] = ip;
   mtx.unlock();
 
   return ip;
@@ -66,7 +57,7 @@ INode *INodeCache::inode_alloc(uint32_t dev, uint16_t type) {
 }
 
 INode *INodeCache::inode_dup(INode *ip) {
-  if (ip == nullptr) assert(0 && "ip == nullptr");
+  assert(ip != nullptr && "ip == nullptr");
   mtx.lock();
   ip->ref++;
   mtx.unlock();
@@ -87,8 +78,8 @@ void INodeCache::inode_put(INode *ip) {
 
     ip->trunc();
     ip->dinode.type = 0;
-    ip->update();
-    ip->valid = 0;
+    ip->update();  // update the disk
+    ip->valid = false;
 
     ip->mtx.unlock();
 
@@ -96,6 +87,10 @@ void INodeCache::inode_put(INode *ip) {
   }
 
   ip->ref--;
+  if (ip->ref == 0) {
+    inodes.erase(INodeKey(ip->dev, ip->inum));
+    delete ip;
+  }
   mtx.unlock();
 }
 

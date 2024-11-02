@@ -14,7 +14,10 @@ struct BlockKey {
 
   BlockKey(uint32_t dev, uint32_t blockno) : dev(dev), blockno(blockno) {}
 
-  bool operator<(const BlockKey &other) const { return dev < other.dev || (dev == other.dev && blockno < other.blockno); }
+  bool operator<(const BlockKey &other) const {
+    if (dev != other.dev) return dev < other.dev;
+    return blockno < other.blockno;
+  }
 };
 
 struct Block {

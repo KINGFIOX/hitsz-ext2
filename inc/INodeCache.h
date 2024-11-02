@@ -1,21 +1,23 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <mutex>
 
 #include "INode.h"
 #include "common.h"
 
 class INodeCache {
- public:
-  static std::mutex mtx;
-  static INode inodes[NINODE];
+ private:
+  static inline std::mutex mtx;
+  static inline std::map<INodeKey, INode*> inodes;
 
  public:
   static void init(void);
 
   /// @brief Find the inode with number inum on device dev
-  /// @return the in-memory copy. Does not lock the inode and does not read it from disk.
+  /// @return the in-memory copy.
+  /// @warning Does not lock the inode and does not read it from disk.
   static INode* inode_get(uint32_t dev, uint32_t inum);
 
   /// @brief Allocate an inode on device dev.  Mark it as allocated by  giving it type type.

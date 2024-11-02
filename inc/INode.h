@@ -8,6 +8,18 @@
 #include "DiskINode.h"
 #include "Stat.h"
 
+struct INodeKey {
+  uint32_t dev;
+  uint32_t inum;
+
+  INodeKey(uint32_t dev, uint32_t inum) : dev(dev), inum(inum) {}
+
+  bool operator<(const INodeKey &other) const {
+    if (dev != other.dev) return dev < other.dev;
+    return inum < other.inum;
+  }
+};
+
 struct INode {
   uint32_t dev;    // Device number
   uint32_t inum;   // Inode number

@@ -19,13 +19,11 @@ extern "C" {
 #include <fuse.h>
 }
 
-static int do_rename_same(const char *source, const char *dest) {
-  std::filesystem::path source_path(source);
-  std::filesystem::path dest_path(dest);
-  std::filesystem::path parent = source_path.parent_path();
+static int same_parent(const std::filesystem::path &source, const std::filesystem::path &dest) {
+  std::filesystem::path parent = source.parent_path();
 
-  std::filesystem::path dest_base = dest_path.filename();
-  std::filesystem::path source_base = source_path.filename();
+  std::filesystem::path dest_base = dest.filename();
+  std::filesystem::path source_base = source.filename();
 
   Log::begin_op();
   INode *dp = inode_name(parent.c_str());
@@ -68,6 +66,75 @@ static int do_rename_same(const char *source, const char *dest) {
   return 0;
 }
 
+static int different_parent(const std::filesystem::path &source, const std::filesystem::path &dest) {
+  std::filesystem::path dest_parent = dest.parent_path();
+  std::filesystem::path source_parent = source.parent_path();
+  std::filesystem::path dest_base = dest.filename();
+  std::filesystem::path source_base = source.filename();
+
+  off_t off;
+  uint32_t n;
+  DirEntry de;
+  int ret;
+
+  Log::begin_op();
+
+  INode *dp_src = inode_name(source_parent.c_str());
+  if (dp_src == nullptr || dp_src->dinode.type != DiskINode::T_DIR) {
+    Log::end_op();
+    return -ENOENT;
+  }
+
+  INode *dp_dest = inode_name(dest_parent.c_str());
+  if (dp_dest == nullptr || dp_dest->dinode.type != DiskINode::T_DIR) {
+    INodeCache::inode_unlock_put(dp_src);
+    Log::end_op();
+    return -ENOENT;
+  }
+
+  INode *ip = dp_src->dirlookup(source_base.c_str(), &off);
+  if (ip == nullptr) {
+    INodeCache::inode_unlock_put(dp_src);
+    INodeCache::inode_unlock_put(dp_dest);
+    Log::end_op();
+    return -ENOENT;
+  }
+
+  ret = dp_dest->dirlink(dest_base.c_str(), ip->inum);  // link to dest
+  if (ret < 0) {
+    INodeCache::inode_unlock_put(ip);
+    INodeCache::inode_unlock_put(dp_src);
+    INodeCache::inode_unlock_put(dp_dest);
+    Log::end_op();
+    return -EIO;
+  }
+  dp_dest->update();
+
+  ::memset(&de, 0, sizeof(de));
+  n = dp_src->read((uint64_t)&de, dp_src->dinode.size - sizeof(de), sizeof(de));
+  if (n != sizeof(DirEntry)) {
+    ::memset(&de, 0, sizeof(de));
+    dp_dest->write((uint64_t)&de, dp_dest->dinode.size - sizeof(de), sizeof(de));  // roll back
+    dp_dest->update();
+
+    INodeCache::inode_unlock_put(ip);
+    INodeCache::inode_unlock_put(dp_src);
+    INodeCache::inode_unlock_put(dp_dest);
+    Log::end_op();
+    return -EIO;
+  }
+  dp_src->write((uint64_t)&de, off, sizeof(de));
+  dp_src->update();
+
+  INodeCache::inode_put(ip);
+  INodeCache::inode_unlock_put(dp_src);
+  INodeCache::inode_unlock_put(dp_dest);
+
+  Log::end_op();
+
+  return 0;
+}
+
 int op_rename(const char *source, const char *dest) {
   Logger::log("enter: ", __FILE__, ":", __LINE__);
 
@@ -76,13 +143,9 @@ int op_rename(const char *source, const char *dest) {
   std::filesystem::path dest_path(dest);
 
   if (source_path.parent_path() == dest_path.parent_path()) {
-    ret = do_rename_same(source, dest);
+    ret = same_parent(source_path, dest_path);
   } else {
-    ret = do_link(source, dest);
-    if (ret != 0) {
-      return ret;
-    }
-    ret = do_unlink(source);
+    ret = different_parent(source_path, dest_path);
   }
 
   Logger::log("leave: ", __FILE__, ":", __LINE__);

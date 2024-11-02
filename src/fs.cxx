@@ -205,10 +205,10 @@ INode *INode::dirlookup(const char *name, off_t *poff) {
   return nullptr;
 }
 
-int INode::dirlink(char *name, uint32_t inum) {
+int INode::dirlink(const char *name, uint32_t inum) {
   // Check that name is not present.
   INode *ip = this->dirlookup(name, 0);
-  if (ip != 0) {
+  if (ip != nullptr) {
     INodeCache::inode_put(ip);
     return -1;
   }

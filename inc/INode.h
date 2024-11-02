@@ -66,5 +66,5 @@ struct INode {
 
   /// @brief Write a new directory entry (name, inum) into the directory dp.
   /// @return Returns 0 on success, -1 on failure (e.g. out of disk blocks).
-  int dirlink(char *name, uint32_t inum);
+  int dirlink(const char *name, uint32_t inum);
 };

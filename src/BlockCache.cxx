@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <cstdio>
 #include <mutex>
 
 #include "Block.h"

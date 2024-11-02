@@ -14,13 +14,6 @@
 #include "SuperBlock.h"
 #include "common.h"
 
-uint32_t Log::start;
-uint32_t Log::size;
-uint32_t Log::outstanding;  // how many FS sys calls are executing.
-bool Log::committing;       // in commit(), please wait.
-uint32_t Log::dev;
-LogHeader Log::log_hdr;
-
 std::mutex Log::mtx;
 std::condition_variable Log::cv;
 
@@ -46,7 +39,7 @@ void Log::write_head(void) {
 }
 
 void Log::recover_from_log(void) {
-  Log::read_head();
+  read_head();
   for (size_t tail = 0; tail < log_hdr.n; tail++) {
     Block *log_blk = BlockCache::block_read(dev, start + tail + 1);     // read log block
     Block *dst_blk = BlockCache::block_read(dev, log_hdr.block[tail]);  // read dst
@@ -57,13 +50,13 @@ void Log::recover_from_log(void) {
     BlockCache::block_release(dst_blk);
   }
   log_hdr.n = 0;
-  Log::write_head();  // clear the log
+  write_head();  // clear the log
 }
 
 void Log::commit() {
   if (log_hdr.n > 0) {
-    Log::write_log();   // Write modified blocks from cache to log
-    Log::write_head();  // Write header to disk -- the real commit
+    write_log();   // Write modified blocks from cache to log
+    write_head();  // Write header to disk -- the real commit
     for (size_t tail = 0; tail < log_hdr.n; tail++) {
       Block *log_blk = BlockCache::block_read(dev, start + tail + 1);     // read log block
       Block *dst_blk = BlockCache::block_read(dev, log_hdr.block[tail]);  // read dst
@@ -74,7 +67,7 @@ void Log::commit() {
       BlockCache::block_release(dst_blk);
     }
     log_hdr.n = 0;
-    Log::write_head();  // Erase the transaction from the log
+    write_head();  // Erase the transaction from the log
   }
 }
 
@@ -89,14 +82,14 @@ void Log::write_log(void) {
   }
 }
 
-void Log::init(uint32_t dev) {
+void Log::init(uint32_t _dev) {
   assert(sizeof(LogHeader) < BSIZE && "LogHeader too big");
 
   start = SuperBlock::logstart;
   size = SuperBlock::nlog;
-  Log::dev = dev;
+  dev = _dev;
 
-  Log::recover_from_log();
+  recover_from_log();
 }
 
 void Log::begin_op(void) {

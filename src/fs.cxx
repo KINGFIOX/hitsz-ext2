@@ -19,6 +19,8 @@
 #include "common.h"
 
 /// @brief clear the block(disk)'s data
+///
+/// @warning should be enclosed in a transaction.
 static void block_zeroed(uint32_t dev, uint32_t bno) {
   Block *bp = BlockCache::block_read(dev, bno);
   ::memset(bp->data, 0, BSIZE);
@@ -26,8 +28,10 @@ static void block_zeroed(uint32_t dev, uint32_t bno) {
   BlockCache::block_release(bp);
 }
 
-/// @brief Allocate a zeroed disk block.
+/// @brief Allocate a zeroed disk block. (this function manipulate the bitmap, and zero the target block)
 /// @return bno; 0 if out of disk space.
+///
+/// @warning should be enclosed in a transaction.
 static uint32_t block_alloc(uint32_t dev) {
   for (size_t b = 0; b < SuperBlock::size; b += BIT_PER_BLOCK) {
     Block *bp = BlockCache::block_read(dev, BIT_BLOCK(b));
@@ -47,7 +51,9 @@ static uint32_t block_alloc(uint32_t dev) {
   return 0;
 }
 
-/// @brief Free a disk block. only set the bit to 0 in bitmap.
+/// @brief Free a disk block. only set the bit to 0 in bitmap. (this function only manipulate the bitmap)
+///
+/// @warning should be enclosed in a transaction.
 static void block_free(uint32_t dev, uint32_t b) {
   Block *bp = BlockCache::block_read(dev, BIT_BLOCK(b));
   uint32_t bi = b % BIT_PER_BLOCK;
@@ -139,34 +145,34 @@ static uint32_t block_map(INode *ip, uint32_t bno_logi) {
   assert(0 && "bmap: out of range");
 }
 
-uint32_t INode::read(uint64_t dst, off_t off, uint32_t n) {
+uint32_t INode::read(uint64_t buf, off_t off, uint32_t n) {
   if (off > this->dinode.size || off + n < off) return 0;
   if (off + n > this->dinode.size) n = this->dinode.size - off;  // return type should be same as this->dinode.size
 
   uint32_t tot, m;
-  for (tot = 0; tot < n; tot += m, off += m, dst += m) {
+  for (tot = 0; tot < n; tot += m, off += m, buf += m) {
     uint32_t bno_phy = block_map(this, off / BSIZE);
     if (bno_phy == 0) break;
     Block *bp = BlockCache::block_read(this->dev, bno_phy);
     m = MIN(n - tot, BSIZE - off % BSIZE);
 
-    ::memmove((char *)dst, bp->data + (off % BSIZE), m);
+    ::memmove((char *)buf, bp->data + (off % BSIZE), m);
     BlockCache::block_release(bp);
   }
   return tot;
 }
 
-uint32_t INode::write(uint64_t src, off_t off, uint32_t n) {
+uint32_t INode::write(uint64_t buf, off_t off, uint32_t n) {
   if (off > this->dinode.size || off + n < off) return -1;
   if (off + (off_t)n > (off_t)(MAX_FILE * BSIZE)) return -1;
 
   uint32_t tot, m;
-  for (tot = 0; tot < n; tot += m, off += m, src += m) {
+  for (tot = 0; tot < n; tot += m, off += m, buf += m) {
     uint32_t bno_phy = block_map(this, off / BSIZE);
     if (bno_phy == 0) break;
     Block *bp = BlockCache ::block_read(this->dev, bno_phy);
     m = MIN(n - tot, BSIZE - off % BSIZE);
-    ::memmove(bp->data + (off % BSIZE), (char *)src, m);
+    ::memmove(bp->data + (off % BSIZE), (char *)buf, m);
     Log::log_write(bp);
     BlockCache::block_release(bp);
   }
@@ -182,7 +188,7 @@ uint32_t INode::write(uint64_t src, off_t off, uint32_t n) {
 }
 
 INode *INode::dirlookup(const char *name, off_t *poff) {
-  if (this->dinode.type != DiskINode::T_DIR) assert(0 && "dirlookup not DIR");
+  assert(this->dinode.type == DiskINode::T_DIR && "dirlookup not DIR");
 
   for (off_t off = 0; off < this->dinode.size; off += sizeof(DirEntry)) {
     DirEntry de;

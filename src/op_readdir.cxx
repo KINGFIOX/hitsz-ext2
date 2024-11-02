@@ -34,9 +34,10 @@ int op_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset
     if (de.inum == 0) {
       continue;
     }
-    struct stat st;
     INode *de_ip = INodeCache::inode_get(fp->ip->dev, de.inum);
+
     de_ip->lock();
+    struct stat st;
     do_fillstatbuf(de_ip, &st);
     INodeCache::inode_unlock_put(de_ip);
     if (filler(buf, de.name, &st, i + sizeof(DirEntry)) != 0) {

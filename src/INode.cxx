@@ -19,7 +19,7 @@ void INode::lock(void) {
 
   this->mtx.lock();
 
-  if (this->valid == 0) {
+  if (this->valid == false) {
     Block *bp = BlockCache::block_read(this->dev, INODE_BLOCK(this->inum));
     DiskINode *dip = (DiskINode *)bp->data + this->inum % INODE_PER_BLOCK;
     this->dinode.type = dip->type;
@@ -29,8 +29,10 @@ void INode::lock(void) {
     this->dinode.size = dip->size;
     ::memmove(this->dinode.addrs, dip->addrs, sizeof(this->dinode.addrs));
     BlockCache::block_release(bp);
-    this->valid = 1;
-    assert(this->dinode.type != 0 && "ilock: no type");
+    this->valid = true;
+    if (this->dinode.type == 0) {
+      assert(0 && "ilock: no type");
+    }
   }
 }
 

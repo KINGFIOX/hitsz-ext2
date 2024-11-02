@@ -17,12 +17,12 @@ struct LogHeader {
 
 class Log {
  public:
-  static uint32_t start;
-  static uint32_t size;
-  static uint32_t outstanding;  // how many FS sys calls are executing.
-  static bool committing;       // in commit(), please wait.
-  static uint32_t dev;
-  static LogHeader log_hdr;
+  static inline uint32_t start;
+  static inline uint32_t size;
+  static inline uint32_t outstanding;  // how many FS sys calls are executing.
+  static inline bool committing;       // in commit(), please wait.
+  static inline uint32_t dev;
+  static inline LogHeader log_hdr;
 
   static void init(uint32_t dev);
 

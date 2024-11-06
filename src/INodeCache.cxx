@@ -39,7 +39,7 @@ INode *INodeCache::inode_get(uint32_t dev, uint32_t inum) {
   return ip;
 }
 
-INode *INodeCache::inode_alloc(uint32_t dev, uint16_t type) {
+INode *INodeCache::inode_alloc(uint32_t dev, DiskINode::FileType type) {
   for (uint32_t inum = 1; inum < SuperBlock::ninodes; inum++) {
     Block *bp = BlockCache::block_read(dev, INODE_BLOCK(inum));
     DiskINode *dip = (DiskINode *)bp->data + inum % INODE_PER_BLOCK;
@@ -77,7 +77,7 @@ void INodeCache::inode_put(INode *ip) {
     mtx.unlock();
 
     ip->trunc();
-    ip->dinode.type = 0;
+    ip->dinode.type = DiskINode::Invalid;
     ip->update();  // update the disk
     ip->valid = false;
 
